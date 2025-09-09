@@ -15,7 +15,7 @@ namespace Quill.Domain.Entities
         }
         
         public string Name { get; set; } //*
-        public string Surname { get; set; } //*
+        public string Surname { get; set; } //*bunla
         public string Email { get; set; } // * unique
         public string Username { get; set; } // * unique
         public string PasswordHash { get; set; }
