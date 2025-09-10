@@ -17,7 +17,7 @@ namespace Quill.Domain.Entities
         public User User { get; set; }
         public string Title { get; set; }
         public string Text { get; set; }
-        public string Summary { get; set; } // max 150 char
+        public string Summary { get; set; } 
         public int CategoryId { get; set; }
         public Category Category { get; set; }
         public ICollection<PostTag> Tags { get; set; }
