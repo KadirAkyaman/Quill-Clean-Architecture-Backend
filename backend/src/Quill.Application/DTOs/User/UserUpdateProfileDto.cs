@@ -7,8 +7,8 @@ namespace Quill.Application.DTOs.User
 {
     public class UserUpdateProfileDto
     {
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Username { get; set; }
+        public string? Name { get; set; }
+        public string? Surname { get; set; }
+        public string? Username { get; set; }
     }
 }

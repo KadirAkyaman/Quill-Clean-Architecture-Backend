@@ -19,7 +19,7 @@ namespace Quill.Domain.Entities
         public string Email { get; set; } // * unique
         public string Username { get; set; } // * unique
         public string PasswordHash { get; set; }
-        public string ProfilePictureURL { get; set; }
+        public string? ProfilePictureURL { get; set; }
         public ICollection<Post> Posts { get; set; }
         public ICollection<Subscription> Subscribers { get; set; }
         public ICollection<Subscription> Subscriptions { get; set; } 

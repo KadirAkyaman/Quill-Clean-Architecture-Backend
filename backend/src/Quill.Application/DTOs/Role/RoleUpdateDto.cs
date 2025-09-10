@@ -7,6 +7,6 @@ namespace Quill.Application.DTOs.Role
 {
     public class RoleUpdateDto
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

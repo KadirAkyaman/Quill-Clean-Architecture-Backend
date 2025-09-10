@@ -12,7 +12,7 @@ namespace Quill.Application.DTOs.User
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Username { get; set; }
-        public string ProfilePictureURL { get; set; }
+        public string? ProfilePictureURL { get; set; }
         public DateTime MemberSince { get; set; }
         public string Role { get; set; }
         public UserStatsDto Stats { get; set; }

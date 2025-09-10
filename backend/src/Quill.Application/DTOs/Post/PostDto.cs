@@ -20,6 +20,7 @@ namespace Quill.Application.DTOs.Post
         public string Text { get; set; }
         public string Summary { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? LastUpdatedAt { get; set; }
         public string Status { get; set; }
         public UserSummaryDto Author { get; set; }
         public CategoryDto Category { get; set; }

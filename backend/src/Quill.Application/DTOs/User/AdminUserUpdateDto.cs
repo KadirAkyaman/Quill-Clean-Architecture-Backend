@@ -7,9 +7,9 @@ namespace Quill.Application.DTOs.User
 {
     public class AdminUserUpdateDto
     {
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Username { get; set; }
-        public bool IsActive { get; set; }
+        public string? Name { get; set; }
+        public string? Surname { get; set; }
+        public string? Username { get; set; }
+        public bool? IsActive { get; set; }
     }
 }
