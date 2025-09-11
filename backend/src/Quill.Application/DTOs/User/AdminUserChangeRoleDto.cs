@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Quill.Application.DTOs.User
 {
-    public class AdminUserChangeRoleDto // By admin
+    public class AdminUserChangeRoleDto 
     {
         public int RoleId { get; set; }
     }

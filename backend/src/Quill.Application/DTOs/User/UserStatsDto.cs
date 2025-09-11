@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Quill.Application.DTOs.User
 {
-    public class UserStatsDto // post count, subscriber count, subscribed count
+    public class UserStatsDto 
     {
         public int PostsCount { get; set; }
         public int SubscriberCount { get; set; }
