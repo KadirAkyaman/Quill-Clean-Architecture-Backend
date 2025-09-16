@@ -8,12 +8,12 @@ namespace Quill.Application.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
-        public IUserRepository Users { get; }
-        public ITagRepository Tags { get; }
-        public ISubscriptionRepository Subscriptions { get; }
-        public IRoleRepository Roles { get; }
-        public IPostRepository Posts { get; }
-        public ICategoryRepository Categories { get; }
+        public IUserRepository UserRepository { get; }
+        public ITagRepository TagRepository { get; }
+        public ISubscriptionRepository SubscriptionRepository { get; }
+        public IRoleRepository RoleRepository { get; }
+        public IPostRepository PostRepository { get; }
+        public ICategoryRepository CategoryRepository { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }
 }
