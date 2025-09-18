@@ -12,6 +12,7 @@ namespace Quill.Application.Interfaces.Repositories
         Task<Post?> GetByIdAsync(int postId, CancellationToken cancellationToken);
         Task<IReadOnlyList<Post>> GetByAuthorIdAsync(int authorId, CancellationToken cancellationToken);
         Task<IReadOnlyList<Post>> GetByCategoryIdAsync(int categoryId, CancellationToken cancellationToken);
+        Task<IReadOnlyList<Post>> GetByCategoryNameAsync(string categoryName, CancellationToken cancellationToken);
         Task<IReadOnlyList<Post>> GetByTagNameAsync(string tagName, CancellationToken cancellationToken);
         Task<IReadOnlyList<Post>> GetRecentAsync(int count, CancellationToken cancellationToken);//Retrieves the most recently created posts up to a specified number. (e.g., for the homepage)
         Task AddAsync(Post post, CancellationToken cancellationToken);

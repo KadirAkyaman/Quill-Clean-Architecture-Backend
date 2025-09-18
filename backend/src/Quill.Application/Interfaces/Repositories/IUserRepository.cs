@@ -14,6 +14,6 @@ namespace Quill.Application.Interfaces.Repositories
         Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken);
         Task AddAsync(User user, CancellationToken cancellationToken);
         void Update(User user);
-        void Remove(User user);
+        //void Remove(User user);
     }
 }

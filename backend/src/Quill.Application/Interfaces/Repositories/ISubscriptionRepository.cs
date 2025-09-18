@@ -19,6 +19,8 @@ namespace Quill.Application.Interfaces.Repositories
         Task<IReadOnlyList<Subscription>> GetSubscribersBySubscribedToIdAsync(int subscribedToId, CancellationToken cancellationToken);
         Task AddAsync(Subscription subscription, CancellationToken cancellationToken);
         void Update(Subscription subscription);
-        void Remove(Subscription subscription);
+
+        //Soft Delete -> Update
+        //void Remove(Subscription subscription);
     }
 }

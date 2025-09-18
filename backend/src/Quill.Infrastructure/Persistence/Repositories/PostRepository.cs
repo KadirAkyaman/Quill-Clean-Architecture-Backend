@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Dapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Quill.Application.Interfaces.Repositories;
 using Quill.Domain.Entities;
 
@@ -24,32 +27,189 @@ namespace Quill.Infrastructure.Persistence.Repositories
 
         public async Task<IReadOnlyList<Post>> GetAllAsync(CancellationToken cancellationToken)
         {
-            return await _context.Posts.AsNoTracking().ToListAsync(cancellationToken);
+            var sql = @"SELECT p.*, u.*, c.* 
+                        FROM ""Posts"" AS p
+                        LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
+                        LEFT JOIN ""Categories"" AS c ON p.""CategoryId"" = c.""Id""";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+                var posts = await connection.QueryAsync<Post, User, Category, Post>(
+                    new CommandDefinition(sql, transaction: transaction, cancellationToken: cancellationToken),
+                    (post, user, category) =>
+                    {
+                        post.User = user;
+                        post.Category = category;
+                        return post;
+                    },
+                    splitOn: "Id,Id"
+                );
+                return posts.ToList();
+            }
         }
 
         public async Task<IReadOnlyList<Post>> GetByAuthorIdAsync(int authorId, CancellationToken cancellationToken)
         {
-            return await _context.Posts.AsNoTracking().Include(p => p.Category).Where(p => p.UserId == authorId).ToListAsync(cancellationToken);
+            var sql = @"SELECT p.*, c.* 
+                        FROM ""Posts"" AS p
+                        LEFT JOIN ""Categories"" AS c ON p.""CategoryId"" = c.""Id""
+                        WHERE p.""UserId"" = @AuthorId";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+                var posts = await connection.QueryAsync<Post, Category, Post>(
+                    new CommandDefinition(sql, new { AuthorId = authorId }, transaction, cancellationToken: cancellationToken),
+                    (post, category) =>
+                    {
+                        post.Category = category;
+                        return post;
+                    },
+                    splitOn: "Id"
+                );
+                return posts.ToList();
+            }
         }
 
         public async Task<IReadOnlyList<Post>> GetByCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
         {
-            return await _context.Posts.AsNoTracking().Where(p => p.CategoryId == categoryId).ToListAsync(cancellationToken);
+            var sql = @"SELECT p.*, u.* 
+                        FROM ""Posts"" AS p
+                        LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
+                        WHERE p.""CategoryId"" = @CategoryId";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+                var posts = await connection.QueryAsync<Post, User, Post>(
+                    new CommandDefinition(sql, new { CategoryId = categoryId }, transaction, cancellationToken: cancellationToken),
+                    (post, user) =>
+                    {
+                        post.User = user;
+                        return post;
+                    },
+                    splitOn: "Id"
+                );
+                return posts.ToList();
+            }
+        }
+        
+        public async Task<IReadOnlyList<Post>> GetByCategoryNameAsync(string categoryName, CancellationToken cancellationToken)
+        {
+            var sql = @"SELECT p.*, u.* 
+                        FROM ""Posts"" AS p
+                        LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
+                        WHERE p.""CategoryId"" = (SELECT c.""Id"" FROM ""Categories"" c WHERE c.""Name"" = @CategoryName)";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+                var posts = await connection.QueryAsync<Post, User, Post>(
+                    new CommandDefinition(sql, new { CategoryName = categoryName }, transaction, cancellationToken: cancellationToken),
+                    (post, user) =>
+                    {
+                        post.User = user;
+                        return post;
+                    },
+                    splitOn: "Id"
+                );
+                return posts.ToList();
+            }
         }
 
         public async Task<Post?> GetByIdAsync(int postId, CancellationToken cancellationToken)
         {
-            return await _context.Posts.AsNoTracking().SingleOrDefaultAsync(p => p.Id == postId, cancellationToken);
+            var sql = @"SELECT p.*, u.*, c.*, t.*
+                        FROM ""Posts"" AS p
+                        LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
+                        LEFT JOIN ""Categories"" AS c ON p.""CategoryId"" = c.""Id""
+                        LEFT JOIN ""PostTags"" AS pt ON p.""Id"" = pt.""PostId""
+                        LEFT JOIN ""Tags"" AS t ON pt.""TagId"" = t.""Id""
+                        WHERE p.""Id"" = @PostId";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+                var postDictionary = new Dictionary<int, Post>();
+
+                var posts = await connection.QueryAsync<Post, User, Category, Tag, Post>(
+                    new CommandDefinition(sql, new { PostId = postId }, transaction, cancellationToken: cancellationToken),
+                    (post, user, category, tag) =>
+                    {
+                        if (!postDictionary.TryGetValue(post.Id, out var currentPost))
+                        {
+                            currentPost = post;
+                            currentPost.User = user;
+                            currentPost.Category = category;
+                            currentPost.Tags = new List<PostTag>();
+                            postDictionary.Add(currentPost.Id, currentPost);
+                        }
+                        if (tag != null)
+                        {
+                            currentPost.Tags.Add(new PostTag { Post = currentPost, Tag = tag });
+                        }
+                        return currentPost;
+                    },
+                    splitOn: "Id,Id,Id"
+                );
+                return posts.Distinct().SingleOrDefault();
+            }
         }
 
         public async Task<IReadOnlyList<Post>> GetByTagNameAsync(string tagName, CancellationToken cancellationToken)
         {
-            return await _context.Posts.AsNoTracking().Where(p => p.Tags.Any(pt => pt.Tag.Name == tagName)).ToListAsync(cancellationToken);
+            var sql = @"SELECT p.*, u.*, c.*
+                        FROM ""Posts"" AS p
+                        LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
+                        LEFT JOIN ""Categories"" AS c ON p.""CategoryId"" = c.""Id""
+                        WHERE EXISTS (
+                            SELECT 1 FROM ""PostTags"" pt
+                            INNER JOIN ""Tags"" t ON pt.""TagId"" = t.""Id""
+                            WHERE pt.""PostId"" = p.""Id"" AND t.""Name"" = @TagName
+                        )";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+                var posts = await connection.QueryAsync<Post, User, Category, Post>(
+                    new CommandDefinition(sql, new { TagName = tagName }, transaction, cancellationToken: cancellationToken),
+                    (post, user, category) =>
+                    {
+                        post.User = user;
+                        post.Category = category;
+                        return post;
+                    },
+                    splitOn: "Id,Id"
+                );
+                return posts.ToList();
+            }
         }
 
         public async Task<IReadOnlyList<Post>> GetRecentAsync(int count, CancellationToken cancellationToken)
         {
-            return await _context.Posts.AsNoTracking().Include(p => p.User).Include(p => p.Category).OrderByDescending(p => p.CreatedAt).Take(count).ToListAsync(cancellationToken);
+            var sql = @"SELECT p.*, u.*, c.*
+                        FROM ""Posts"" AS p
+                        LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
+                        LEFT JOIN ""Categories"" AS c ON p.""CategoryId"" = c.""Id""
+                        ORDER BY p.""CreatedAt"" DESC
+                        LIMIT @Count";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+                var posts = await connection.QueryAsync<Post, User, Category, Post>(
+                    new CommandDefinition(sql, new { Count = count }, transaction, cancellationToken: cancellationToken),
+                    (post, user, category) =>
+                    {
+                        post.User = user;
+                        post.Category = category;
+                        return post;
+                    },
+                    splitOn: "Id,Id"
+                );
+                return posts.ToList();
+            }
         }
 
         public void Remove(Post post)
