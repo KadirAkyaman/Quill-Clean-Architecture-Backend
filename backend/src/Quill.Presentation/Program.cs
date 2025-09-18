@@ -1,9 +1,13 @@
+using Microsoft.EntityFrameworkCore;
 using Quill.Application.Interfaces;
 using Quill.Application.Interfaces.Repositories;
+using Quill.Infrastructure.Options;
 using Quill.Infrastructure.Persistence;
 using Quill.Infrastructure.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection(DatabaseOptions.SectionName));
 
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
@@ -14,7 +18,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-builder.Services.AddScoped<AppDbContext>();
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString(DatabaseOptions.ConnectionStringName)));
+
 
 var app = builder.Build();
 
