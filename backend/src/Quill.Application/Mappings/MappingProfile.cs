@@ -46,12 +46,9 @@ namespace Quill.Application.Mappings
             CreateMap<User, UserDto>();
             CreateMap<User, UserProfileDto>();
             CreateMap<User, UserSummaryDto>();
-            //AuthResponseDto
-            //UserStatsDto
+
             CreateMap<AdminUserChangeRoleDto, User>();
             CreateMap<AdminUserUpdateDto, User>();
-            CreateMap<UserChangePasswordDto, User>();
-            CreateMap<UserLoginDto, User>();
             CreateMap<UserRegisterDto, User>();
             CreateMap<UserUpdateProfileDto, User>();
         }

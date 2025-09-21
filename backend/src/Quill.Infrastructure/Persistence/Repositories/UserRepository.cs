@@ -37,12 +37,26 @@ namespace Quill.Infrastructure.Persistence.Repositories
 
         public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
         {
-            var sql = @"SELECT * FROM ""Users"" WHERE ""Email"" = @Email";
+            var sql = @"SELECT u.*, r.* 
+                        FROM ""Users"" AS u
+                        LEFT JOIN ""Roles"" AS r ON u.""RoleId"" = r.""Id""
+                        WHERE u.""Email"" = @Email";
 
             using (var connection = _context.Database.GetDbConnection())
             {
                 var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                return await connection.QuerySingleOrDefaultAsync<User>(new CommandDefinition(sql, new { Email = email }, transaction: transaction, cancellationToken: cancellationToken));
+
+                var users = await connection.QueryAsync<User, Role, User>(
+                    new CommandDefinition(sql, new { Email = email }, transaction, cancellationToken: cancellationToken),
+                    (user, role) => 
+                    {
+                        user.Role = role;
+                        return user;
+                    },
+                    splitOn: "Id"
+                );
+
+                return users.SingleOrDefault();
             }
         }
 
@@ -59,19 +73,28 @@ namespace Quill.Infrastructure.Persistence.Repositories
 
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
         {
-            var sql = @"SELECT * FROM ""Users"" WHERE ""Username"" = @Username";
+           var sql = @"SELECT u.*, r.* 
+                       FROM ""Users"" AS u
+                       LEFT JOIN ""Roles"" AS r ON u.""RoleId"" = r.""Id""
+                       WHERE u.""Username"" = @Username";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                return await connection.QuerySingleOrDefaultAsync<User>(new CommandDefinition(sql, new { Username = username }, transaction: transaction, cancellationToken: cancellationToken));
-            }
+           using (var connection = _context.Database.GetDbConnection())
+           {
+               var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+
+               var users = await connection.QueryAsync<User, Role, User>(
+                   new CommandDefinition(sql, new { Username = username }, transaction, cancellationToken: cancellationToken),
+                   (user, role) =>
+                   {
+                       user.Role = role;
+                       return user;
+                   },
+                   splitOn: "Id"
+               );
+
+               return users.SingleOrDefault();
+           }
         }
-
-        //public void Remove(User user)
-        //{
-        //    _context.Users.Remove(user);
-        //}
 
         public void Update(User user)
         {

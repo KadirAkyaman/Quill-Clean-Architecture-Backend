@@ -186,6 +186,43 @@ namespace Quill.Infrastructure.Persistence.Repositories
             }
         }
 
+        public async Task<int> GetCountByAuthorIdAsync(int authorId, CancellationToken cancellationToken)
+        {
+            var sql = @"SELECT COUNT(*) FROM ""Posts"" WHERE ""UserId"" = @AuthorId";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+
+                return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { AuthorId = authorId }, transaction: transaction, cancellationToken: cancellationToken));
+            }
+        }
+
+        public async Task<IReadOnlyList<Post>> GetRecentByAuthorIdAsync(int authorId, int count, CancellationToken cancellationToken)
+        {
+            var sql = @"SELECT p.*, c.* 
+                        FROM ""Posts"" AS p
+                        LEFT JOIN ""Categories"" AS c ON p.""CategoryId"" = c.""Id""
+                        WHERE p.""UserId"" = @AuthorId
+                        ORDER BY p.""CreatedAt"" DESC
+                        LIMIT @Count";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+
+                var posts = await connection.QueryAsync<Post, Category, Post>(new CommandDefinition(sql, new { AuthorId = authorId, Count = count }, transaction, cancellationToken: cancellationToken),
+                    (post, category) => 
+                    {
+                        post.Category = category;
+                        return post;
+                    },
+                    splitOn: "Id");
+
+                return posts.ToList();
+            }
+        }
+
         public async Task<IReadOnlyList<Post>> GetRecentAsync(int count, CancellationToken cancellationToken)
         {
             var sql = @"SELECT p.*, u.*, c.*

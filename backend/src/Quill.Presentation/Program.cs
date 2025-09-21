@@ -7,10 +7,12 @@ using Quill.Infrastructure.Persistence;
 using Quill.Infrastructure.Persistence.Repositories;
 using FluentValidation;
 using Quill.Application.Validators.User;
+using Quill.Application.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection(DatabaseOptions.SectionName));
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();

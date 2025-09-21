@@ -13,6 +13,7 @@ namespace Quill.Infrastructure.Persistence.Repositories
     public class SubscriptionRepository : ISubscriptionRepository
     {
         private readonly AppDbContext _context;
+
         public SubscriptionRepository(AppDbContext context)
         {
             _context = context;
@@ -32,8 +33,32 @@ namespace Quill.Infrastructure.Persistence.Repositories
                 var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
                 return await connection.QuerySingleOrDefaultAsync<Subscription>(new CommandDefinition(sql, new { SubscribedToId = subscribedToId, SubscriberId = subscriberId }, transaction: transaction, cancellationToken: cancellationToken));
             }
-            
+
             //return await _context.Subscriptions.AsNoTracking().SingleOrDefaultAsync(s => s.SubscriberId == subscriberId && s.SubscribedToId == subscribedToId, cancellationToken);
+        }
+
+        public async Task<int> GetSubscriberCountAsync(int userId, CancellationToken cancellationToken)
+        {
+            var sql = @"SELECT COUNT(*) FROM ""Subscriptions"" WHERE ""SubscribedToId"" = @UserId AND ""IsActive"" = true";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+
+                return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { UserId = userId }, transaction: transaction, cancellationToken: cancellationToken));
+            }
+        }
+
+        public async Task<int> GetSubscriptionCountAsync(int userId, CancellationToken cancellationToken)
+        {
+            var sql = @"SELECT COUNT(*) FROM ""Subscriptions"" WHERE ""SubscriberId"" = @UserId AND ""IsActive"" = true";
+
+            using (var connection = _context.Database.GetDbConnection())
+            {
+                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+
+                return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { UserId = userId }, transaction: transaction, cancellationToken: cancellationToken));
+            }
         }
 
         public async Task<IReadOnlyList<Subscription>> GetSubscribersBySubscribedToIdAsync(int subscribedToId, CancellationToken cancellationToken)
@@ -66,12 +91,6 @@ namespace Quill.Infrastructure.Persistence.Repositories
 
             //return await _context.Subscriptions.AsNoTracking().Where(s => s.SubscriberId == subscriberId).ToListAsync(cancellationToken);
         }
-
-        //Soft Delete -> Update
-        //public void Remove(Subscription subscription)
-        //{
-        //    _context.Subscriptions.Remove(subscription);
-        //}
 
         public void Update(Subscription subscription)
         {
