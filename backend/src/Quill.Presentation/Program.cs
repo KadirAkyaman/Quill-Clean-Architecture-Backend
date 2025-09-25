@@ -16,9 +16,15 @@ using Quill.Application.Validators.User;
 using Quill.Infrastructure.Options;
 using Quill.Infrastructure.Persistence;
 using Quill.Infrastructure.Persistence.Repositories;
+using Quill.Presentation.Middleware;
+using Serilog;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Serilog
+builder.Host.UseSerilog((context, config) =>
+    config.ReadFrom.Configuration(context.Configuration));
 
 // --- Configure Services ---
 
@@ -120,7 +126,9 @@ var app = builder.Build();
 
 // --- Configure HTTP Request Pipeline ---
 
-// --> GLOBAL EXCEPTION MIDDLEWARE 
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+app.UseSerilogRequestLogging();
 
 // Swagger
 if (app.Environment.IsDevelopment())
