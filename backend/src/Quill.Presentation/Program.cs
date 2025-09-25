@@ -1,8 +1,11 @@
+using System.Reflection;
 using System.Text;
 using FluentValidation;
+using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Quill.Application.Interfaces;
 using Quill.Application.Interfaces.Repositories;
 using Quill.Application.Interfaces.Services;
@@ -13,6 +16,7 @@ using Quill.Application.Validators.User;
 using Quill.Infrastructure.Options;
 using Quill.Infrastructure.Persistence;
 using Quill.Infrastructure.Persistence.Repositories;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +50,43 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddAuthorization();
 
+// Swagger
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Quill API", Version = "v1" });
+    // This tells Swagger what your security scheme is ("it's a Bearer token that goes in the header").
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\""
+    });
+
+    // This tells Swagger how to apply that scheme to your API's endpoints ("use this Bearer token for all endpoints that require authorization").
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+
+    options.IncludeXmlComments(xmlPath);
+});
+
 // Project Repositories
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
@@ -68,6 +109,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Other Application Services
 builder.Services.AddValidatorsFromAssembly(typeof(UserRegisterDtoValidator).Assembly);
+builder.Services.AddFluentValidationRulesToSwagger();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseNpgsql(builder.Configuration.GetConnectionString(DatabaseOptions.ConnectionStringName)));
@@ -77,6 +119,16 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 // --- Configure HTTP Request Pipeline ---
+
+// --> GLOBAL EXCEPTION MIDDLEWARE 
+
+// Swagger
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
