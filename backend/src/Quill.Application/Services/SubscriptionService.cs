@@ -43,35 +43,42 @@ namespace Quill.Application.Services
                 throw new InvalidSubscriptionOperationException("Users cannot subscribe to themselves.");
             }
 
-            var existingSubscription  = await _unitOfWork.SubscriptionRepository.FindSubscriptionAsync(subscriberId, subscriptionCreateDto.SubscribedToId, cancellationToken);
+            var existingSubscription = await _unitOfWork.SubscriptionRepository
+                .FindSubscriptionAsync(subscriberId, subscriptionCreateDto.SubscribedToId, cancellationToken);
 
             Subscription subscriptionToReturn;
 
-            if (existingSubscription is null)                                                                                             // If the user has never subscribed to this user before
+            if (existingSubscription is null)
             {
                 var newSubscription = _mapper.Map<Subscription>(subscriptionCreateDto);
                 newSubscription.SubscriberId = subscriberId;
+                newSubscription.CreatedAt = DateTime.UtcNow;
+                newSubscription.IsActive = true;
 
                 await _unitOfWork.SubscriptionRepository.AddAsync(newSubscription, cancellationToken);
                 subscriptionToReturn = newSubscription;
             }
             else
             {
-                if (existingSubscription.IsActive)                                                                                        // If this user is already an active subscriber, it throws an exception
+                if (existingSubscription.IsActive)
                 {
                     throw new AlreadySubscribedException("Already subscribed to this user.");
                 }
-                                                                                                                                          // If the user has never subscribed to the other user
-                existingSubscription.IsActive = true;
 
+                existingSubscription.IsActive = true;
+                existingSubscription.UpdatedAt = DateTime.UtcNow;
                 _unitOfWork.SubscriptionRepository.Update(existingSubscription);
                 subscriptionToReturn = existingSubscription;
             }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<SubscriptionDto>(subscriptionToReturn);
-        }
+            var fullSubscription = await _unitOfWork.SubscriptionRepository
+                .GetByIdWithDetailsAsync(subscriptionToReturn.Id, cancellationToken);
 
+            return _mapper.Map<SubscriptionDto>(fullSubscription);
+        }
+        
         public async Task UnsubscribeAsync(int subscriberId, int subscribedToId, CancellationToken cancellationToken)
         {
             if (subscriberId == subscribedToId)
@@ -87,8 +94,9 @@ namespace Quill.Application.Services
             }
 
             existingSubscription.IsActive = false;
+            existingSubscription.UpdatedAt = DateTime.UtcNow;
             _unitOfWork.SubscriptionRepository.Update(existingSubscription);
-            
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }

@@ -157,10 +157,11 @@ namespace Quill.Application.Services
                 throw new Exception("Default 'Author' role not found. Please configure the database.");
             }
             newUser.RoleId = defaultRole.Id;
-            newUser.Role = defaultRole; 
 
             await _unitOfWork.UserRepository.AddAsync(newUser, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            newUser.Role = defaultRole;
 
             var token = _authService.GenerateJwtToken(newUser);
             var expirationDate = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpiryInMinutes);
@@ -171,7 +172,7 @@ namespace Quill.Application.Services
                 Token = token,
                 Expiration = expirationDate,
                 Username = newUser.Username,
-                Role = newUser.Role.Name
+                Role = defaultRole.Name
             };
 
             return authResponseDto;

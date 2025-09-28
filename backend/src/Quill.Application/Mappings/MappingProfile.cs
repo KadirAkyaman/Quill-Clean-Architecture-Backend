@@ -34,7 +34,10 @@ namespace Quill.Application.Mappings
             CreateMap<RoleUpdateDto, Role>();
 
             //Subscription
-            CreateMap<Subscription, SubscriptionDto>();
+            CreateMap<Subscription, SubscriptionDto>()
+            .ForMember(dest => dest.SubscriptionDate,
+               opt => opt.MapFrom(src => (src.IsActive && src.UpdatedAt.HasValue) ? src.UpdatedAt.Value : src.CreatedAt));
+
             CreateMap<SubscriptionCreateDto, Subscription>();
 
             //Tag
@@ -43,14 +46,25 @@ namespace Quill.Application.Mappings
             CreateMap<TagUpdateDto, Tag>();
 
             //User
-            CreateMap<User, UserDto>();
-            CreateMap<User, UserProfileDto>();
+            CreateMap<User, UserDto>()
+            .ForMember(dest => dest.MemberSince, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
+
+            CreateMap<User, UserProfileDto>()
+            .ForMember(dest => dest.MemberSince, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
+
             CreateMap<User, UserSummaryDto>();
 
             CreateMap<AdminUserChangeRoleDto, User>();
-            CreateMap<AdminUserUpdateDto, User>();
+
+            CreateMap<AdminUserUpdateDto, User>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            
             CreateMap<UserRegisterDto, User>();
-            CreateMap<UserUpdateProfileDto, User>();
+
+            CreateMap<UserUpdateProfileDto, User>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Quill.Application.Interfaces.Repositories
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the total number of subscribers.</returns>
         Task<int> GetSubscriberCountAsync(int userId, CancellationToken cancellationToken);
-        
+
         /// <summary>
         /// Calculates the total number of active subscriptions a specific user has made (their following count).
         /// </summary>
@@ -65,5 +65,8 @@ namespace Quill.Application.Interfaces.Repositories
         /// </summary>
         /// <param name="subscription">The subscription entity to update.</param>
         void Update(Subscription subscription);
+        
+        
+        Task<Subscription?> GetByIdWithDetailsAsync(int subscriptionId, CancellationToken cancellationToken);
     }
 }
