@@ -1,9 +1,12 @@
 using System.Reflection;
 using System.Text;
 using FluentValidation;
+using HealthChecks.UI.Client;
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Quill.Application.Interfaces;
@@ -18,19 +21,49 @@ using Quill.Infrastructure.Persistence;
 using Quill.Infrastructure.Persistence.Repositories;
 using Quill.Presentation.Middleware;
 using Serilog;
+using Serilog.Events;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Serilog
-builder.Host.UseSerilog((context, config) =>
-    config.ReadFrom.Configuration(context.Configuration));
+builder.Host.UseSerilog((context, loggerConfig) =>
+{
+    loggerConfig.ReadFrom.Configuration(context.Configuration);
+
+    loggerConfig.Filter.ByExcluding(logEvent =>
+    {
+        if (logEvent.Properties.TryGetValue("RequestPath", out var requestPathValue))
+        {
+            if (requestPathValue is ScalarValue scalarValue && scalarValue.Value is string path)
+            {
+                return path.StartsWith("/health", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+        return false;
+    });
+});
+
+// Health Check
+builder.Services.AddHealthChecks()
+    .AddNpgSql(
+        connectionString: builder.Configuration.GetConnectionString(DatabaseOptions.ConnectionStringName)!,
+        name: "PostgreSQL Database",
+        failureStatus: Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy,
+        tags: new string[] { "database", "postgres" }
+    );
+
+// Health Check UI
+builder.Services
+    .AddHealthChecksUI()
+    .AddInMemoryStorage();
 
 // --- Configure Services ---
 
 // Options Pattern Registration
 builder.Services.Configure<DatabaseOptions>(builder.Configuration.GetSection(DatabaseOptions.SectionName));
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+
 
 // Authentication & Authorization Services
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
@@ -60,7 +93,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Quill API", Version = "v1" });
-    // This tells Swagger what your security scheme is ("it's a Bearer token that goes in the header").
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -71,7 +103,6 @@ builder.Services.AddSwaggerGen(options =>
         Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\""
     });
 
-    // This tells Swagger how to apply that scheme to your API's endpoints ("use this Bearer token for all endpoints that require authorization").
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -141,5 +172,23 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    },
+    AllowCachingResponses = false
+});
+
+app.MapHealthChecksUI(options =>
+{
+    options.UIPath = "/health-ui";
+});
 
 app.Run();
