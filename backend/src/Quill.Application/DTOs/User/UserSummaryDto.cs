@@ -15,13 +15,13 @@ namespace Quill.Application.DTOs.User
         /// The user's unique username.
         /// </summary>
         /// <example>johndoe</example>
-        public string Username { get; set; }
+        public string Username { get; set; } = string.Empty;
         
         /// <summary>
         /// The user's full name.
         /// </summary>
         /// <example>John Doe</example>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         
         /// <summary>
         /// The URL of the user's profile picture.

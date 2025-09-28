@@ -9,12 +9,12 @@ namespace Quill.Application.DTOs.User
         /// The user's registered email address.
         /// </summary>
         /// <example>john.doe@example.com</example>
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         /// <summary>
         /// The user's password.
         /// </summary>
         /// <example>Password123!</example>
-        public string Password { get; set; }
+        public string Password { get; set; } = string.Empty;
     }
 }

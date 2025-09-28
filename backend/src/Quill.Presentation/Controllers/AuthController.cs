@@ -8,6 +8,7 @@ namespace Quill.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("Authentication")]
     public class AuthController : ControllerBase
     {
         // ../logout 

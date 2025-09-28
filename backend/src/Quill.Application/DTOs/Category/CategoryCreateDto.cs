@@ -11,6 +11,6 @@ namespace Quill.Application.DTOs.Category
         /// The name of the new category. Must be unique.
         /// </summary>
         /// <example>Technology</example>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 }

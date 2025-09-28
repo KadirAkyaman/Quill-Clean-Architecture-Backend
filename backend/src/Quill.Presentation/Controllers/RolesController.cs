@@ -10,6 +10,7 @@ namespace Quill.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("Roles")]
     public class RolesController : ControllerBase
     {
         private readonly IRoleService _roleService;

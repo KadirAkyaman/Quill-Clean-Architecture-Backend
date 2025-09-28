@@ -24,17 +24,17 @@ namespace Quill.Application.DTOs.Post
         /// The title of the post.
         /// </summary>
         /// <example>A Deep Dive into Clean Architecture</example>
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         /// <summary>
         /// The full content of the post.
         /// </summary>
-        public string Text { get; set; }
+        public string Text { get; set; } = string.Empty;
 
         /// <summary>
         /// A short summary of the post.
         /// </summary>
-        public string Summary { get; set; }
+        public string Summary { get; set; } = string.Empty;
 
         /// <summary>
         /// The date and time the post was created.
@@ -50,17 +50,17 @@ namespace Quill.Application.DTOs.Post
         /// The current status of the post (e.g., "Draft", "Published").
         /// </summary>
         /// <example>Published</example>
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
 
         /// <summary>
         /// A summary of the author who wrote the post.
         /// </summary>
-        public UserSummaryDto Author { get; set; }
+        public UserSummaryDto Author { get; set; } = null!;
 
         /// <summary>
         /// The category the post belongs to.
         /// </summary>
-        public CategoryDto Category { get; set; }
+        public CategoryDto Category { get; set; } = null!;
 
         /// <summary>
         /// A collection of tags associated with the post.

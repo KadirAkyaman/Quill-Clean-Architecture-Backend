@@ -17,19 +17,19 @@ namespace Quill.Application.DTOs.User
         /// The user's first name.
         /// </summary>
         /// <example>John</example>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// The user's last name.
         /// </summary>
         /// <example>Doe</example>
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         /// <summary>
         /// The user's unique, public username.
         /// </summary>
         /// <example>johndoe</example>
-        public string Username { get; set; }
+        public string Username { get; set; } = string.Empty;
 
         /// <summary>
         /// The URL of the user's profile picture. Can be null.
@@ -46,16 +46,16 @@ namespace Quill.Application.DTOs.User
         /// The role assigned to the user.
         /// </summary>
         /// <example>Author</example>
-        public string Role { get; set; }
+        public string Role { get; set; } = string.Empty;
 
         /// <sumnmary>
         /// The user's key statistics, such as post and subscriber counts.
         /// </summary>
-        public UserStatsDto Stats { get; set; }
+        public UserStatsDto Stats { get; set; } = null!;
 
         /// <summary>
         /// A collection of the user's most recent posts for preview.
         /// </summary>
-        public ICollection<PostPreviewDto> RecentPosts { get; set; }
+        public ICollection<PostPreviewDto> RecentPosts { get; set; } = null!;
     }
 }

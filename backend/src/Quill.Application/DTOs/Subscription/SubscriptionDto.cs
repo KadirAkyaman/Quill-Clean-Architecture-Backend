@@ -16,12 +16,12 @@ namespace Quill.Application.DTOs.Subscription
         /// <summary>
         /// A summary of the user who is subscribing.
         /// </summary>
-        public UserSummaryDto Subscriber { get; set; }
+        public UserSummaryDto Subscriber { get; set; } = null!;
 
         /// <summary>
         /// A summary of the user who is being subscribed to.
         /// </summary>
-        public UserSummaryDto SubscribedTo { get; set; }
+        public UserSummaryDto SubscribedTo { get; set; } = null!;
         
         /// <summary>
         /// The date and time the subscription was initiated.

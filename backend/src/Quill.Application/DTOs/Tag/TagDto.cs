@@ -15,7 +15,7 @@ namespace Quill.Application.DTOs.Tag
         /// The name of the tag.
         /// </summary>
         /// <example>Clean Architecture</example>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         

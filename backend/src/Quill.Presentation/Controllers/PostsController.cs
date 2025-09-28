@@ -11,6 +11,7 @@ namespace Quill.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("Posts")]
     public class PostsController : ControllerBase
     {
         private readonly IPostService _postService;

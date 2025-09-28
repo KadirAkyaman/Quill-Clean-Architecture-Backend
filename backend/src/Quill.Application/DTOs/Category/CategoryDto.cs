@@ -20,7 +20,7 @@ namespace Quill.Application.DTOs.Category
         /// The name of the category.
         /// </summary>
         /// <example>Technology</example>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// The number of posts associated with this category.

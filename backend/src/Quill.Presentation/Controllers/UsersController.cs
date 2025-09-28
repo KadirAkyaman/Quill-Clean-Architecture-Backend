@@ -12,6 +12,7 @@ namespace Quill.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("Users")]
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;

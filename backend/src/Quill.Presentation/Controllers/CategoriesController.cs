@@ -11,6 +11,7 @@ namespace Quill.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("Categories")]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -66,7 +67,7 @@ namespace Quill.Presentation.Controllers
         /// <returns>The category with the specified name.</returns>
         /// <response code="200">Returns the requested category.</response>
         /// <response code="404">If a category with the specified name is not found.</response>
-        [HttpGet("{name:alpha}")] 
+        [HttpGet("{name:alpha}")]
         [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CategoryDto>> GetByName(string name, CancellationToken cancellationToken)
@@ -112,7 +113,7 @@ namespace Quill.Presentation.Controllers
         /// Updates an existing category. (Admin Only)
         /// </summary>
         /// <param name="id">The unique identifier of the category to update.</param>
-        /// <param name="updateDto">The new data for the category.</param>
+        /// <param name="categoryUpdateDto">The new data for the category.</param>
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>An empty response indicating success.</returns>
         /// <response code="204">If the update was successful.</response>

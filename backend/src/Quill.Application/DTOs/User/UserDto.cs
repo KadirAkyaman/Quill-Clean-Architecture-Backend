@@ -15,19 +15,19 @@ namespace Quill.Application.DTOs.User
         /// The user's unique username.
         /// </summary>
         /// <example>johndoe</example>
-        public string Username { get; set; }
+        public string Username { get; set; } = string.Empty;
 
         /// <summary>
         /// The user's first name.
         /// </summary>
         /// <example>John</example>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// The user's last name.
         /// </summary>
         /// <example>Doe</example>
-        public string Surname { get; set; }
+        public string Surname { get; set; } = string.Empty;
 
         /// <summary>
         /// The URL of the user's profile picture.
@@ -39,7 +39,7 @@ namespace Quill.Application.DTOs.User
         /// The role assigned to the user.
         /// </summary>
         /// <example>Author</example>
-        public string Role { get; set; }
+        public string Role { get; set; } = string.Empty;
 
         /// <summary>
         /// The date and time the user registered.

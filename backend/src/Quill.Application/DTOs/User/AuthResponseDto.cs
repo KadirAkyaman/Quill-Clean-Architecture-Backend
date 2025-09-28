@@ -15,7 +15,7 @@ namespace Quill.Application.DTOs.User
         /// The JWT Bearer token for the user's session.
         /// </summary>
         /// <example>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</example>
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;
 
         /// <summary>
         /// The expiration date and time of the token.
@@ -26,12 +26,12 @@ namespace Quill.Application.DTOs.User
         /// The username of the authenticated user.
         /// </summary>
         /// <example>johndoe</example>
-        public string Username { get; set; }
+        public string Username { get; set; } = string.Empty;
 
         /// <summary>
         /// The role of the authenticated user.
         /// </summary>
         /// <example>Author</example>
-        public string Role { get; set; }
+        public string Role { get; set; } = string.Empty;
     }
 }

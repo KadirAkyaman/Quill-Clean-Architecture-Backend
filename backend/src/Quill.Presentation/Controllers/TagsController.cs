@@ -12,6 +12,7 @@ namespace Quill.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("Tags")]
     public class TagsController : ControllerBase
     {
         private readonly ITagService _tagService;
@@ -145,6 +146,6 @@ namespace Quill.Presentation.Controllers
         {
             await _tagService.DeleteAsync(id, cancellationToken);
             return NoContent();
-        }       
+        }
     }
 }

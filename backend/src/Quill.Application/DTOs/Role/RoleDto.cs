@@ -15,7 +15,7 @@ namespace Quill.Application.DTOs.Role
         /// The name of the role.
         /// </summary>
         /// <example>Editor</example>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// The number of users assigned to this role.

@@ -9,6 +9,7 @@ namespace Quill.Presentation.Controllers
 {
     [ApiController]
     [Route("api/admin/users")]
+    [Tags("Admin")]
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
