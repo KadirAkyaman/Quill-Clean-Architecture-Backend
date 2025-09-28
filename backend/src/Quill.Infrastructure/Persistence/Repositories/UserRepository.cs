@@ -26,13 +26,13 @@ namespace Quill.Infrastructure.Persistence.Repositories
         {
             var sql = @"SELECT * FROM ""Users""";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                var users = await connection.QueryAsync<User>(new CommandDefinition(sql, transaction: transaction, cancellationToken: cancellationToken));
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var users = await connection.QueryAsync<User>(new CommandDefinition(sql, transaction: transaction, cancellationToken: cancellationToken));
 
-                return users.ToList();
-            }
+            return users.ToList();
+            
         }
 
         public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
@@ -42,33 +42,33 @@ namespace Quill.Infrastructure.Persistence.Repositories
                         LEFT JOIN ""Roles"" AS r ON u.""RoleId"" = r.""Id""
                         WHERE u.""Email"" = @Email";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var connection = _context.Database.GetDbConnection();
+        
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
-                var users = await connection.QueryAsync<User, Role, User>(
-                    new CommandDefinition(sql, new { Email = email }, transaction, cancellationToken: cancellationToken),
-                    (user, role) => 
-                    {
-                        user.Role = role;
-                        return user;
-                    },
-                    splitOn: "Id"
-                );
+            var users = await connection.QueryAsync<User, Role, User>(
+                new CommandDefinition(sql, new { Email = email }, transaction, cancellationToken: cancellationToken),
+                (user, role) => 
+                {
+                    user.Role = role;
+                    return user;
+                },
+                splitOn: "Id"
+            );
 
-                return users.SingleOrDefault();
-            }
+            return users.SingleOrDefault();
+            
         }
 
         public async Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
             var sql = @"SELECT * FROM ""Users"" WHERE ""Id"" = @Id";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
+            var connection = _context.Database.GetDbConnection();
+            
                 var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
                 return await connection.QuerySingleOrDefaultAsync<User>(new CommandDefinition(sql, new { Id = id }, transaction: transaction, cancellationToken: cancellationToken));
-            }
+            
         }
 
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
@@ -78,22 +78,21 @@ namespace Quill.Infrastructure.Persistence.Repositories
                        LEFT JOIN ""Roles"" AS r ON u.""RoleId"" = r.""Id""
                        WHERE u.""Username"" = @Username";
 
-           using (var connection = _context.Database.GetDbConnection())
-           {
-               var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var connection = _context.Database.GetDbConnection();
+           
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
-               var users = await connection.QueryAsync<User, Role, User>(
-                   new CommandDefinition(sql, new { Username = username }, transaction, cancellationToken: cancellationToken),
-                   (user, role) =>
-                   {
-                       user.Role = role;
-                       return user;
-                   },
-                   splitOn: "Id"
-               );
+            var users = await connection.QueryAsync<User, Role, User>(
+                new CommandDefinition(sql, new { Username = username }, transaction, cancellationToken: cancellationToken),
+                (user, role) =>
+                {
+                    user.Role = role;
+                    return user;
+                },
+                splitOn: "Id"
+            );
 
-               return users.SingleOrDefault();
-           }
+            return users.SingleOrDefault();
         }
 
         public void Update(User user)

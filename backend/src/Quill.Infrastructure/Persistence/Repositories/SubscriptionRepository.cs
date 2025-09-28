@@ -28,12 +28,10 @@ namespace Quill.Infrastructure.Persistence.Repositories
         {
             var sql = @"SELECT * FROM ""Subscriptions"" WHERE ""SubscribedToId"" = @SubscribedToId AND ""SubscriberId"" = @SubscriberId";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                return await connection.QuerySingleOrDefaultAsync<Subscription>(new CommandDefinition(sql, new { SubscribedToId = subscribedToId, SubscriberId = subscriberId }, transaction: transaction, cancellationToken: cancellationToken));
-            }
-
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            return await connection.QuerySingleOrDefaultAsync<Subscription>(new CommandDefinition(sql, new { SubscribedToId = subscribedToId, SubscriberId = subscriberId }, transaction: transaction, cancellationToken: cancellationToken));
             //return await _context.Subscriptions.AsNoTracking().SingleOrDefaultAsync(s => s.SubscriberId == subscriberId && s.SubscribedToId == subscribedToId, cancellationToken);
         }
 
@@ -41,38 +39,36 @@ namespace Quill.Infrastructure.Persistence.Repositories
         {
             var sql = @"SELECT COUNT(*) FROM ""Subscriptions"" WHERE ""SubscribedToId"" = @UserId AND ""IsActive"" = true";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
-                return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { UserId = userId }, transaction: transaction, cancellationToken: cancellationToken));
-            }
+            return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { UserId = userId }, transaction: transaction, cancellationToken: cancellationToken));
+            
         }
 
         public async Task<int> GetSubscriptionCountAsync(int userId, CancellationToken cancellationToken)
         {
             var sql = @"SELECT COUNT(*) FROM ""Subscriptions"" WHERE ""SubscriberId"" = @UserId AND ""IsActive"" = true";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
-                return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { UserId = userId }, transaction: transaction, cancellationToken: cancellationToken));
-            }
+            return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { UserId = userId }, transaction: transaction, cancellationToken: cancellationToken));
         }
 
         public async Task<IReadOnlyList<Subscription>> GetSubscribersBySubscribedToIdAsync(int subscribedToId, CancellationToken cancellationToken)
         {
             var sql = @"SELECT * FROM ""Subscriptions"" WHERE ""SubscribedToId"" = @SubscribedToId";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
-                var subscribers = await connection.QueryAsync<Subscription>(new CommandDefinition(sql, new { SubscribedToId = subscribedToId }, transaction: transaction, cancellationToken: cancellationToken));
+            var subscribers = await connection.QueryAsync<Subscription>(new CommandDefinition(sql, new { SubscribedToId = subscribedToId }, transaction: transaction, cancellationToken: cancellationToken));
 
-                return subscribers.ToList();
-            }
+            return subscribers.ToList();
             //return await _context.Subscriptions.AsNoTracking().Where(s => s.SubscribedToId == subscribedToId).ToListAsync(cancellationToken);
         }
 
@@ -80,15 +76,12 @@ namespace Quill.Infrastructure.Persistence.Repositories
         {
             var sql = @"SELECT * FROM ""Subscriptions"" WHERE ""SubscriberId"" = @SubscriberId";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var connection = _context.Database.GetDbConnection();
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
-                var subscriptions = await connection.QueryAsync<Subscription>(new CommandDefinition(sql, new { SubscriberId = subscriberId }, transaction: transaction, cancellationToken: cancellationToken));
+            var subscriptions = await connection.QueryAsync<Subscription>(new CommandDefinition(sql, new { SubscriberId = subscriberId }, transaction: transaction, cancellationToken: cancellationToken));
 
-                return subscriptions.ToList();
-            }
-
+            return subscriptions.ToList();
             //return await _context.Subscriptions.AsNoTracking().Where(s => s.SubscriberId == subscriberId).ToListAsync(cancellationToken);
         }
 

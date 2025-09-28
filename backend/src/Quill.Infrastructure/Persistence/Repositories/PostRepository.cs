@@ -32,21 +32,19 @@ namespace Quill.Infrastructure.Persistence.Repositories
                         LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
                         LEFT JOIN ""Categories"" AS c ON p.""CategoryId"" = c.""Id""";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                var posts = await connection.QueryAsync<Post, User, Category, Post>(
-                    new CommandDefinition(sql, transaction: transaction, cancellationToken: cancellationToken),
-                    (post, user, category) =>
-                    {
-                        post.User = user;
-                        post.Category = category;
-                        return post;
-                    },
-                    splitOn: "Id,Id"
-                );
-                return posts.ToList();
-            }
+            var connection = _context.Database.GetDbConnection();
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var posts = await connection.QueryAsync<Post, User, Category, Post>(
+                new CommandDefinition(sql, transaction: transaction, cancellationToken: cancellationToken),
+                (post, user, category) =>
+                {
+                    post.User = user;
+                    post.Category = category;
+                    return post;
+                },
+                splitOn: "Id,Id"
+            );
+            return posts.ToList();
         }
 
         public async Task<IReadOnlyList<Post>> GetByAuthorIdAsync(int authorId, CancellationToken cancellationToken)
@@ -56,20 +54,19 @@ namespace Quill.Infrastructure.Persistence.Repositories
                         LEFT JOIN ""Categories"" AS c ON p.""CategoryId"" = c.""Id""
                         WHERE p.""UserId"" = @AuthorId";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                var posts = await connection.QueryAsync<Post, Category, Post>(
-                    new CommandDefinition(sql, new { AuthorId = authorId }, transaction, cancellationToken: cancellationToken),
-                    (post, category) =>
-                    {
-                        post.Category = category;
-                        return post;
-                    },
-                    splitOn: "Id"
-                );
-                return posts.ToList();
-            }
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var posts = await connection.QueryAsync<Post, Category, Post>(
+                new CommandDefinition(sql, new { AuthorId = authorId }, transaction, cancellationToken: cancellationToken),
+                (post, category) =>
+                {
+                    post.Category = category;
+                    return post;
+                },
+                splitOn: "Id"
+            );
+            return posts.ToList();
         }
 
         public async Task<IReadOnlyList<Post>> GetByCategoryIdAsync(int categoryId, CancellationToken cancellationToken)
@@ -79,20 +76,18 @@ namespace Quill.Infrastructure.Persistence.Repositories
                         LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
                         WHERE p.""CategoryId"" = @CategoryId";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                var posts = await connection.QueryAsync<Post, User, Post>(
-                    new CommandDefinition(sql, new { CategoryId = categoryId }, transaction, cancellationToken: cancellationToken),
-                    (post, user) =>
-                    {
-                        post.User = user;
-                        return post;
-                    },
-                    splitOn: "Id"
-                );
-                return posts.ToList();
-            }
+            var connection = _context.Database.GetDbConnection();
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var posts = await connection.QueryAsync<Post, User, Post>(
+                new CommandDefinition(sql, new { CategoryId = categoryId }, transaction, cancellationToken: cancellationToken),
+                (post, user) =>
+                {
+                    post.User = user;
+                    return post;
+                },
+                splitOn: "Id"
+            );
+            return posts.ToList();
         }
         
         public async Task<IReadOnlyList<Post>> GetByCategoryNameAsync(string categoryName, CancellationToken cancellationToken)
@@ -102,20 +97,18 @@ namespace Quill.Infrastructure.Persistence.Repositories
                         LEFT JOIN ""Users"" AS u ON p.""UserId"" = u.""Id""
                         WHERE p.""CategoryId"" = (SELECT c.""Id"" FROM ""Categories"" c WHERE c.""Name"" = @CategoryName)";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                var posts = await connection.QueryAsync<Post, User, Post>(
-                    new CommandDefinition(sql, new { CategoryName = categoryName }, transaction, cancellationToken: cancellationToken),
-                    (post, user) =>
-                    {
-                        post.User = user;
-                        return post;
-                    },
-                    splitOn: "Id"
-                );
-                return posts.ToList();
-            }
+            var connection = _context.Database.GetDbConnection();
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var posts = await connection.QueryAsync<Post, User, Post>(
+                new CommandDefinition(sql, new { CategoryName = categoryName }, transaction, cancellationToken: cancellationToken),
+                (post, user) =>
+                {
+                    post.User = user;
+                    return post;
+                },
+                splitOn: "Id"
+            );
+            return posts.ToList();
         }
 
         public async Task<Post?> GetByIdAsync(int postId, CancellationToken cancellationToken)
@@ -128,33 +121,30 @@ namespace Quill.Infrastructure.Persistence.Repositories
                         LEFT JOIN ""Tags"" AS t ON pt.""TagId"" = t.""Id""
                         WHERE p.""Id"" = @PostId";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                var postDictionary = new Dictionary<int, Post>();
-
-                var posts = await connection.QueryAsync<Post, User, Category, Tag, Post>(
-                    new CommandDefinition(sql, new { PostId = postId }, transaction, cancellationToken: cancellationToken),
-                    (post, user, category, tag) =>
+            var connection = _context.Database.GetDbConnection();
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var postDictionary = new Dictionary<int, Post>();
+            var posts = await connection.QueryAsync<Post, User, Category, Tag, Post>(
+                new CommandDefinition(sql, new { PostId = postId }, transaction, cancellationToken: cancellationToken),
+                (post, user, category, tag) =>
+                {
+                    if (!postDictionary.TryGetValue(post.Id, out var currentPost))
                     {
-                        if (!postDictionary.TryGetValue(post.Id, out var currentPost))
-                        {
-                            currentPost = post;
-                            currentPost.User = user;
-                            currentPost.Category = category;
-                            currentPost.Tags = new List<PostTag>();
-                            postDictionary.Add(currentPost.Id, currentPost);
-                        }
-                        if (tag != null)
-                        {
-                            currentPost.Tags.Add(new PostTag { Post = currentPost, Tag = tag });
-                        }
-                        return currentPost;
-                    },
-                    splitOn: "Id,Id,Id"
-                );
-                return posts.Distinct().SingleOrDefault();
-            }
+                        currentPost = post;
+                        currentPost.User = user;
+                        currentPost.Category = category;
+                        currentPost.Tags = new List<PostTag>();
+                        postDictionary.Add(currentPost.Id, currentPost);
+                    }
+                    if (tag != null)
+                    {
+                        currentPost.Tags.Add(new PostTag { Post = currentPost, Tag = tag });
+                    }
+                    return currentPost;
+                },
+                splitOn: "Id,Id,Id"
+            );
+            return posts.Distinct().SingleOrDefault();
         }
 
         public async Task<IReadOnlyList<Post>> GetByTagNameAsync(string tagName, CancellationToken cancellationToken)
@@ -169,33 +159,31 @@ namespace Quill.Infrastructure.Persistence.Repositories
                             WHERE pt.""PostId"" = p.""Id"" AND t.""Name"" = @TagName
                         )";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                var posts = await connection.QueryAsync<Post, User, Category, Post>(
-                    new CommandDefinition(sql, new { TagName = tagName }, transaction, cancellationToken: cancellationToken),
-                    (post, user, category) =>
-                    {
-                        post.User = user;
-                        post.Category = category;
-                        return post;
-                    },
-                    splitOn: "Id,Id"
-                );
-                return posts.ToList();
-            }
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var posts = await connection.QueryAsync<Post, User, Category, Post>(
+                new CommandDefinition(sql, new { TagName = tagName }, transaction, cancellationToken: cancellationToken),
+                (post, user, category) =>
+                {
+                    post.User = user;
+                    post.Category = category;
+                    return post;
+                },
+                splitOn: "Id,Id"
+            );
+            return posts.ToList();
         }
 
         public async Task<int> GetCountByAuthorIdAsync(int authorId, CancellationToken cancellationToken)
         {
             var sql = @"SELECT COUNT(*) FROM ""Posts"" WHERE ""UserId"" = @AuthorId";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
-                return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { AuthorId = authorId }, transaction: transaction, cancellationToken: cancellationToken));
-            }
+            return await connection.ExecuteScalarAsync<int>(new CommandDefinition(sql, new { AuthorId = authorId }, transaction: transaction, cancellationToken: cancellationToken));
         }
 
         public async Task<IReadOnlyList<Post>> GetRecentByAuthorIdAsync(int authorId, int count, CancellationToken cancellationToken)
@@ -207,20 +195,17 @@ namespace Quill.Infrastructure.Persistence.Repositories
                         ORDER BY p.""CreatedAt"" DESC
                         LIMIT @Count";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-
-                var posts = await connection.QueryAsync<Post, Category, Post>(new CommandDefinition(sql, new { AuthorId = authorId, Count = count }, transaction, cancellationToken: cancellationToken),
-                    (post, category) => 
-                    {
-                        post.Category = category;
-                        return post;
-                    },
-                    splitOn: "Id");
-
-                return posts.ToList();
-            }
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var posts = await connection.QueryAsync<Post, Category, Post>(new CommandDefinition(sql, new { AuthorId = authorId, Count = count }, transaction, cancellationToken: cancellationToken),
+                (post, category) => 
+                {
+                    post.Category = category;
+                    return post;
+                },
+                splitOn: "Id");
+            return posts.ToList();
         }
 
         public async Task<IReadOnlyList<Post>> GetRecentAsync(int count, CancellationToken cancellationToken)
@@ -232,21 +217,20 @@ namespace Quill.Infrastructure.Persistence.Repositories
                         ORDER BY p.""CreatedAt"" DESC
                         LIMIT @Count";
 
-            using (var connection = _context.Database.GetDbConnection())
-            {
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                var posts = await connection.QueryAsync<Post, User, Category, Post>(
-                    new CommandDefinition(sql, new { Count = count }, transaction, cancellationToken: cancellationToken),
-                    (post, user, category) =>
-                    {
-                        post.User = user;
-                        post.Category = category;
-                        return post;
-                    },
-                    splitOn: "Id,Id"
-                );
-                return posts.ToList();
-            }
+            var connection = _context.Database.GetDbConnection();
+            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+            var posts = await connection.QueryAsync<Post, User, Category, Post>(
+                new CommandDefinition(sql, new { Count = count }, transaction, cancellationToken: cancellationToken),
+                (post, user, category) =>
+                {
+                    post.User = user;
+                    post.Category = category;
+                    return post;
+                },
+                splitOn: "Id,Id"
+            );
+            return posts.ToList();
         }
 
         public void Remove(Post post)
