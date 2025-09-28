@@ -21,6 +21,15 @@ namespace Quill.Infrastructure.Persistence.Configurations
 
 
             builder.HasMany(c => c.Posts).WithOne(p => p.Category).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.Restrict);
+
+            var seedDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            builder.HasData(
+                new Category { Id = 1, Name = "Technology", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Category { Id = 2, Name = "SoftwareDevelopment", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Category { Id = 3, Name = "Productivity", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Category { Id = 4, Name = "Lifestyle", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Category { Id = 5, Name = "Science", CreatedAt = seedDate, UpdatedAt = seedDate }
+            );
         }
     }
 }
