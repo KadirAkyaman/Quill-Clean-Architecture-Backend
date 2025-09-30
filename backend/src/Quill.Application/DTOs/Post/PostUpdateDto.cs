@@ -8,11 +8,6 @@ namespace Quill.Application.DTOs.Post
     /// </summary>
     public class PostUpdateDto
     {
-        public PostUpdateDto()
-        {
-            TagIds = new HashSet<int>();
-        }
-
         /// <summary>
         /// The new title for the post. If provided, must be between 5 and 200 characters.
         /// </summary>

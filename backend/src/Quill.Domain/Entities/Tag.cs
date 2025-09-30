@@ -12,7 +12,7 @@ namespace Quill.Domain.Entities
             Posts = new HashSet<PostTag>();
         }
         
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public ICollection<PostTag> Posts { get; set; }
     }
 }

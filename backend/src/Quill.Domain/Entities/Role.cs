@@ -12,7 +12,7 @@ namespace Quill.Domain.Entities
             Users = new HashSet<User>();
         }
 
-        public string Name { get; set; } // Admin, Author
+        public string Name { get; set; } = null!;
         public ICollection<User> Users { get; set; }
     }
 }

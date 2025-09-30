@@ -23,17 +23,17 @@ namespace Quill.Infrastructure.Persistence.Repositories
 
         public async Task<IReadOnlyList<Role>> GetAllAsync(CancellationToken cancellationToken)
         {
-            return await _context.Roles.AsNoTracking().ToListAsync(cancellationToken);
+            return await _context.Roles.Include(r => r.Users).AsNoTracking().ToListAsync(cancellationToken);
         }
 
         public async Task<Role?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            return await _context.Roles.AsNoTracking().SingleOrDefaultAsync(r => r.Id == id, cancellationToken);
+            return await _context.Roles.Include(r => r.Users).AsNoTracking().SingleOrDefaultAsync(r => r.Id == id, cancellationToken);
         }
 
         public async Task<Role?> GetByNameAsync(string name, CancellationToken cancellationToken)
         {
-            return await _context.Roles.AsNoTracking().SingleOrDefaultAsync(r => r.Name == name, cancellationToken);
+            return await _context.Roles.Include(r => r.Users).AsNoTracking().SingleOrDefaultAsync(r => r.Name == name, cancellationToken);
         }
 
         public void Remove(Role role)
@@ -44,6 +44,6 @@ namespace Quill.Infrastructure.Persistence.Repositories
         public void Update(Role role)
         {
             _context.Roles.Update(role);
-        }
+        }    
     }
 }

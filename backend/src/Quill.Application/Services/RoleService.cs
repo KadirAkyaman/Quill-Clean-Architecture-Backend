@@ -66,7 +66,7 @@ namespace Quill.Application.Services
             var role = await GetRoleAndEnsureExists(id, cancellationToken);
 
             _mapper.Map(roleUpdateDto, role);
-            _unitOfWork.RoleRepository.Update(role); 
+            _unitOfWork.RoleRepository.Update(role);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
@@ -81,5 +81,6 @@ namespace Quill.Application.Services
 
             return role;
         }
+        
     }
 }

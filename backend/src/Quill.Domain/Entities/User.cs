@@ -14,17 +14,17 @@ namespace Quill.Domain.Entities
             Subscriptions = new HashSet<Subscription>();
         }
         
-        public string Name { get; set; } //*
-        public string Surname { get; set; } //*bunla
-        public string Email { get; set; } // * unique
-        public string Username { get; set; } // * unique
-        public string PasswordHash { get; set; }
+        public string Name { get; set; } = null!;
+        public string Surname { get; set; } = null!;
+        public string Email { get; set; } = null!; 
+        public string Username { get; set; } = null!; 
+        public string PasswordHash { get; set; } = null!;
         public string? ProfilePictureURL { get; set; }
         public ICollection<Post> Posts { get; set; }
         public ICollection<Subscription> Subscribers { get; set; }
         public ICollection<Subscription> Subscriptions { get; set; } 
         public int RoleId { get; set; }
-        public Role Role { get; set; }
+        public Role Role { get; set; } = null!;
         public bool IsActive { get; set; } = true;
     }
 }

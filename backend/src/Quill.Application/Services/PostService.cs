@@ -26,6 +26,25 @@ namespace Quill.Application.Services
         {
             var post = _mapper.Map<Post>(postCreateDto);
             post.UserId = authorId;
+            post.Status = Domain.Enums.PostStatus.Published;
+
+            if (postCreateDto.TagIds != null && postCreateDto.TagIds.Any())
+            {
+                var tagsFromDb = await _unitOfWork.TagRepository.GetByIdsAsync(postCreateDto.TagIds, cancellationToken);
+                
+                if(tagsFromDb.Count != postCreateDto.TagIds.Count)
+                {
+                    throw new BadRequestException("One or more provided Tag IDs are invalid.");
+                }
+                
+                foreach (var tagId in postCreateDto.TagIds)
+                {
+                    post.Tags.Add(new PostTag
+                    {
+                        TagId = tagId
+                    });
+                }
+            }
 
             await _unitOfWork.PostRepository.AddAsync(post, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -98,9 +117,27 @@ namespace Quill.Application.Services
         public async Task UpdateAsync(int postId, int authorId, PostUpdateDto postUpdateDto, CancellationToken cancellationToken)
         {
             var post = await GetPostAndEnsureOwnership(postId, authorId, cancellationToken);
-
             _mapper.Map(postUpdateDto, post);
             
+            if (postUpdateDto.TagIds != null)
+            {
+                var tagsFromDb = await _unitOfWork.TagRepository.GetByIdsAsync(postUpdateDto.TagIds, cancellationToken);
+                if (tagsFromDb.Count != postUpdateDto.TagIds.Count)
+                {
+                    throw new BadRequestException("One or more provided Tag IDs are invalid.");
+                }
+
+                post.Tags.Clear();
+
+                foreach (var tagId in postUpdateDto.TagIds)
+                {
+                    post.Tags.Add(new PostTag
+                    {
+                        TagId = tagId
+                    });
+                }
+            }
+            post.UpdatedAt = DateTime.UtcNow;
             _unitOfWork.PostRepository.Update(post); 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
@@ -108,7 +145,7 @@ namespace Quill.Application.Services
         // HELPER
         private async Task<Post> GetPostAndEnsureOwnership(int postId, int authorId, CancellationToken cancellationToken)
         {
-            var post = await _unitOfWork.PostRepository.GetByIdAsync(postId, cancellationToken);
+            var post = await _unitOfWork.PostRepository.GetByIdForUpdateAsync(postId, cancellationToken);
 
             if (post is null)
             {

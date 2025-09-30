@@ -44,5 +44,18 @@ namespace Quill.Infrastructure.Persistence.Repositories
         {
             _context.Tags.Update(tag);
         }
+
+        public async Task<List<Tag>> GetByIdsAsync(ICollection<int> ids, CancellationToken cancellationToken)
+        {
+            return await _context.Tags
+                .Where(t => ids.Contains(t.Id))
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<int> GetPostCountAsync(int tagId, CancellationToken cancellationToken)
+        {
+            return await _context.PostTags
+                .CountAsync(pt => pt.TagId == tagId, cancellationToken);
+        }
     }
 }

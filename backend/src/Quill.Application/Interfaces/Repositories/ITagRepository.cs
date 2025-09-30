@@ -55,5 +55,9 @@ namespace Quill.Application.Interfaces.Repositories
         /// </summary>
         /// <param name="tag">The tag entity to remove.</param>
         void Remove(Tag tag);
+
+        Task<List<Tag>> GetByIdsAsync(ICollection<int> ids, CancellationToken cancellationToken);
+
+        Task<int> GetPostCountAsync(int tagId, CancellationToken cancellationToken);
     }
 }

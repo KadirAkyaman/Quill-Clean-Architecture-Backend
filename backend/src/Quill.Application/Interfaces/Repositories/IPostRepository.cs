@@ -40,7 +40,7 @@ namespace Quill.Application.Interfaces.Repositories
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a read-only list of posts in the category.</returns>
         Task<IReadOnlyList<Post>> GetByCategoryIdAsync(int categoryId, CancellationToken cancellationToken);
-        
+
         /// <summary>
         /// Retrieves all posts belonging to a specific category by its name.
         /// </summary>
@@ -48,7 +48,7 @@ namespace Quill.Application.Interfaces.Repositories
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a read-only list of posts in the category.</returns>
         Task<IReadOnlyList<Post>> GetByCategoryNameAsync(string categoryName, CancellationToken cancellationToken);
-        
+
         /// <summary>
         /// Retrieves all posts associated with a specific tag name.
         /// </summary>
@@ -81,7 +81,7 @@ namespace Quill.Application.Interfaces.Repositories
         /// <param name="cancellationToken">A token to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a read-only list of the author's most recent posts.</returns>
         Task<IReadOnlyList<Post>> GetRecentByAuthorIdAsync(int authorId, int count, CancellationToken cancellationToken);
-        
+
         /// <summary>
         /// Marks a new post to be added to the database.
         /// </summary>
@@ -95,11 +95,15 @@ namespace Quill.Application.Interfaces.Repositories
         /// </summary>
         /// <param name="post">The post entity to update.</param>
         void Update(Post post);
-        
+
         /// <summary>
         /// Marks an existing post for deletion from the database.
         /// </summary>
         /// <param name="post">The post entity to remove.</param>
         void Remove(Post post);
+
+        Task<int> GetCountByCategoryIdAsync(int categoryId, CancellationToken cancellationToken);
+
+        Task<Post?> GetByIdForUpdateAsync(int postId, CancellationToken cancellationToken);
     }
 }

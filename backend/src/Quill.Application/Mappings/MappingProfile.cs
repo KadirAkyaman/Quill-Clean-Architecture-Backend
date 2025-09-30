@@ -18,53 +18,67 @@ namespace Quill.Application.Mappings
         public MappingProfile()
         {
             //Category
-            CreateMap<Category, CategoryDto>();
+            CreateMap<Category, CategoryDto>()
+                .ForMember(dest => dest.PostCount, opt => opt.MapFrom<CategoryPostCountResolver>());
             CreateMap<CategoryCreateDto, Category>();
             CreateMap<CategoryUpdateDto, Category>();
 
             //Post
-            CreateMap<Post, PostDto>();
-            CreateMap<Post, PostPreviewDto>();
+            CreateMap<Post, PostDto>()
+                .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.LastUpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
+                .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Select(pt => pt.Tag)));
+            CreateMap<Post, PostPreviewDto>()
+                .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User)) 
+                .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Select(pt => pt.Tag)));         
+
             CreateMap<PostCreateDto, Post>();
-            CreateMap<PostUpdateDto, Post>();
+            CreateMap<PostUpdateDto, Post>()
+                .ForMember(dest => dest.Title, opt => opt.Condition(src => src.Title != null))
+                .ForMember(dest => dest.Text, opt => opt.Condition(src => src.Text != null))
+                .ForMember(dest => dest.Summary, opt => opt.Condition(src => src.Summary != null))
+                .ForMember(dest => dest.CategoryId, opt => opt.Condition(src => src.CategoryId.HasValue))
+                .ForMember(dest => dest.Status, opt => opt.Condition(src => src.Status.HasValue))
+                .ForMember(dest => dest.Tags, opt => opt.Ignore());
 
             //Role
-            CreateMap<Role, RoleDto>();
+            CreateMap<Role, RoleDto>()
+                .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users.Count));
             CreateMap<RoleCreateDto, Role>();
             CreateMap<RoleUpdateDto, Role>();
 
             //Subscription
             CreateMap<Subscription, SubscriptionDto>()
-            .ForMember(dest => dest.SubscriptionDate,
-               opt => opt.MapFrom(src => (src.IsActive && src.UpdatedAt.HasValue) ? src.UpdatedAt.Value : src.CreatedAt));
+                .ForMember(dest => dest.SubscriptionDate, opt => opt.MapFrom(src => (src.IsActive && src.UpdatedAt.HasValue) ? src.UpdatedAt.Value : src.CreatedAt));
 
             CreateMap<SubscriptionCreateDto, Subscription>();
 
             //Tag
-            CreateMap<Tag, TagDto>();
+            CreateMap<Tag, TagDto>()
+                .ForMember(dest => dest.PostCount, opt => opt.MapFrom<TagPostCountResolver>());
             CreateMap<TagCreateDto, Tag>();
             CreateMap<TagUpdateDto, Tag>();
 
             //User
             CreateMap<User, UserDto>()
-            .ForMember(dest => dest.MemberSince, opt => opt.MapFrom(src => src.CreatedAt))
-            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
+                .ForMember(dest => dest.MemberSince, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
 
             CreateMap<User, UserProfileDto>()
-            .ForMember(dest => dest.MemberSince, opt => opt.MapFrom(src => src.CreatedAt))
-            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
+                .ForMember(dest => dest.MemberSince, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
 
             CreateMap<User, UserSummaryDto>();
 
             CreateMap<AdminUserChangeRoleDto, User>();
 
             CreateMap<AdminUserUpdateDto, User>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
-            
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
             CreateMap<UserRegisterDto, User>();
 
             CreateMap<UserUpdateProfileDto, User>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }

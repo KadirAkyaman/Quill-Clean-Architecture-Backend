@@ -141,6 +141,10 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
+// AutoMapper Resolvers
+builder.Services.AddScoped<CategoryPostCountResolver>();
+builder.Services.AddScoped<TagPostCountResolver>();
+
 // Unit of Work
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
