@@ -11,6 +11,7 @@ namespace Quill.Presentation.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Tags("Roles")]
+    [Authorize(Roles = "Admin")]
     public class RolesController : ControllerBase
     {
         private readonly IRoleService _roleService;
@@ -88,7 +89,6 @@ namespace Quill.Presentation.Controllers
         /// <response code="401">If the user is not authenticated.</response>
         /// <response code="403">If the user is not an administrator.</response>
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(RoleDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -113,7 +113,6 @@ namespace Quill.Presentation.Controllers
         /// <response code="401">If the user is not authenticated.</response>
         /// <response code="403">If the user is not an administrator.</response>
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -136,7 +135,6 @@ namespace Quill.Presentation.Controllers
         /// <response code="401">If the user is not authenticated.</response>
         /// <response code="403">If the user is not an administrator.</response>
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

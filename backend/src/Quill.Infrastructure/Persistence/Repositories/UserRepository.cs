@@ -62,24 +62,36 @@ namespace Quill.Infrastructure.Persistence.Repositories
 
         public async Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
-            var sql = @"SELECT * FROM ""Users"" WHERE ""Id"" = @Id";
-
+            var sql = @"SELECT u.*, r.* 
+                        FROM ""Users"" AS u
+                        LEFT JOIN ""Roles"" AS r ON u.""RoleId"" = r.""Id""
+                        WHERE u.""Id"" = @Id";
+        
             var connection = _context.Database.GetDbConnection();
-            
-                var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
-                return await connection.QuerySingleOrDefaultAsync<User>(new CommandDefinition(sql, new { Id = id }, transaction: transaction, cancellationToken: cancellationToken));
-            
+            var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+        
+            var users = await connection.QueryAsync<User, Role, User>(
+                new CommandDefinition(sql, new { Id = id }, transaction, cancellationToken: cancellationToken),
+                (user, role) => 
+                {
+                    user.Role = role;
+                    return user;
+                },
+                splitOn: "Id"
+            );
+        
+            return users.SingleOrDefault();
         }
 
         public async Task<User?> GetByUsernameAsync(string username, CancellationToken cancellationToken)
         {
-           var sql = @"SELECT u.*, r.* 
+            var sql = @"SELECT u.*, r.* 
                        FROM ""Users"" AS u
                        LEFT JOIN ""Roles"" AS r ON u.""RoleId"" = r.""Id""
                        WHERE u.""Username"" = @Username";
 
             var connection = _context.Database.GetDbConnection();
-           
+
             var transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
 
             var users = await connection.QueryAsync<User, Role, User>(

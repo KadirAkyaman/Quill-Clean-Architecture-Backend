@@ -90,7 +90,7 @@ namespace Quill.Presentation.Controllers
             await _userService.DeleteUserByAdminAsync(userId, cancellationToken);
             return NoContent();
         }
-        
+
         /// <summary>
         /// Retrieves a standard, detailed view of a user by their unique identifier. (Admin Only)
         /// </summary>
