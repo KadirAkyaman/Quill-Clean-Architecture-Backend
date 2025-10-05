@@ -190,13 +190,11 @@ namespace Quill.Application.Services
                     throw new ConflictException("This username is already taken by another user.");
                 }
             }
-
             _mapper.Map(userUpdateProfileDto, user);
 
             _unitOfWork.UserRepository.Update(user);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
-
         public async Task UpdateUserByAdminAsync(int userId, AdminUserUpdateDto adminUserUpdateDto, CancellationToken cancellationToken)
         {
             var user = await GetUserAndEnsureExists(userId, cancellationToken);
