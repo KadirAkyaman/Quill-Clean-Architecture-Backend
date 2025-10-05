@@ -50,10 +50,13 @@ namespace Quill.Application.Services
 
             if (existingSubscription is null)
             {
-                var newSubscription = _mapper.Map<Subscription>(subscriptionCreateDto);
-                newSubscription.SubscriberId = subscriberId;
-                newSubscription.CreatedAt = DateTime.UtcNow;
-                newSubscription.IsActive = true;
+                var newSubscription = new Subscription
+                {
+                    SubscriberId = subscriberId,
+                    SubscribedToId = subscriptionCreateDto.SubscribedToId,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow 
+                };
 
                 await _unitOfWork.SubscriptionRepository.AddAsync(newSubscription, cancellationToken);
                 subscriptionToReturn = newSubscription;
