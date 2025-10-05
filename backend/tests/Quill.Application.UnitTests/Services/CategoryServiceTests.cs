@@ -54,8 +54,27 @@ namespace Quill.Application.UnitTests.Services
             _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        [Fact]
+        public async Task CreateAsync_WhenCategoryNameExists_ShouldThrowConflictException()
+        {
+            // Given
+            var categoryCreateDto = new CategoryCreateDto { Name = "Existing Category" };
+            var existingCategory = new Category { Id = 1, Name = categoryCreateDto.Name };
+
+            _categoryRepositoryMock.Setup(repo => repo.GetByNameAsync(categoryCreateDto.Name, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(existingCategory);
+
+            // When
+            Func<Task> act = async () => await _categoryService.CreateAsync(categoryCreateDto, CancellationToken.None);
+
+            // Then
+            await act.Should().ThrowAsync<ConflictException>();
+            _categoryRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Category>(), It.IsAny<CancellationToken>()), Times.Never);
+            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        }
+
         // ---UPDATE-------------------------------------------------------------------------------------------------------  
-        
+
         [Fact]
         public async Task UpdateAsync_WhenCategoryExists_ShouldUpdateCategory()
         {
@@ -85,7 +104,7 @@ namespace Quill.Application.UnitTests.Services
         public async Task UpdateAsync_WhenCategoryNotFound_ShouldThrowNotFoundException()
         {
             // Given
-            var categoryId = 999; 
+            var categoryId = 999;
             var categoryUpdateDto = new CategoryUpdateDto { Name = "Updated Name" };
 
             _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
@@ -96,10 +115,37 @@ namespace Quill.Application.UnitTests.Services
 
             // Then
             await act.Should().ThrowAsync<NotFoundException>();
+            
+            _categoryRepositoryMock.Verify(repo => repo.Update(It.IsAny<Category>()), Times.Never);
+            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WhenCategoryNameExists_ShouldThrowConflictException()
+        {
+            // Given
+            var categoryId = 1;
+            var categoryUpdateDto = new CategoryUpdateDto { Name = "Existing Category" };
+            var categoryFromDb = new Category { Id = categoryId, Name = "Original Name" };
+            var conflictingCategory = new Category { Id = 2, Name = categoryUpdateDto.Name };
+
+            _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(categoryFromDb);
+
+            _categoryRepositoryMock.Setup(repo => repo.GetByNameAsync(categoryUpdateDto.Name, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(conflictingCategory);
+
+            // When
+            Func<Task> act = async () => await _categoryService.UpdateAsync(categoryId, categoryUpdateDto, CancellationToken.None);
+
+            // Then
+            await act.Should().ThrowAsync<ConflictException>();
+            
+            _categoryRepositoryMock.Verify(repo => repo.Update(It.IsAny<Category>()), Times.Never);
+            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         // ---DELETE-------------------------------------------------------------------------------------------------------
-
         [Fact]
         public async Task DeleteAsync_WhenCategoryExists_ShouldDeleteCategory()
         {
@@ -122,7 +168,7 @@ namespace Quill.Application.UnitTests.Services
         public async Task DeleteAsync_WhenCategoryNotFound_ShouldThrowNotFoundException()
         {
             // Given
-            var categoryId = 999; 
+            var categoryId = 999;
 
             _categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Category?)null);
@@ -132,6 +178,9 @@ namespace Quill.Application.UnitTests.Services
 
             // Then
             await act.Should().ThrowAsync<NotFoundException>();
+            
+            _categoryRepositoryMock.Verify(repo => repo.Remove(It.IsAny<Category>()), Times.Never);
+            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }
