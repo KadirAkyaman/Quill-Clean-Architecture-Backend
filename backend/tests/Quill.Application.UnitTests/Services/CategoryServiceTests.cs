@@ -89,7 +89,7 @@ namespace Quill.Application.UnitTests.Services
             _mapperMock.Setup(m => m.Map(categoryUpdateDto, categoryFromDb))
             .Callback<CategoryUpdateDto, Category>((dto, category) => 
             {
-                category.Name = dto.Name;
+                category.Name = dto.Name!;
             });
 
             // When
