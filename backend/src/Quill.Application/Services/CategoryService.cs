@@ -25,6 +25,13 @@ namespace Quill.Application.Services
 
         public async Task<CategoryDto> CreateAsync(CategoryCreateDto categoryCreateDto, CancellationToken cancellationToken)
         {
+            var existingCategory = await _unitOfWork.CategoryRepository.GetByNameAsync(categoryCreateDto.Name, cancellationToken);
+
+            if (existingCategory != null)
+            {
+                throw new ConflictException("A category with this name already exists.");
+            }
+
             var category = _mapper.Map<Category>(categoryCreateDto);
 
             await _unitOfWork.CategoryRepository.AddAsync(category, cancellationToken);
@@ -63,11 +70,21 @@ namespace Quill.Application.Services
         }
 
         public async Task UpdateAsync(int id, CategoryUpdateDto categoryUpdateDto, CancellationToken cancellationToken)
-        {
-            var category = await GetCategoryAndEnsureExists(id, cancellationToken);
+        {            
+            var categoryToUpdate = await GetCategoryAndEnsureExists(id, cancellationToken);
 
-            _mapper.Map(categoryUpdateDto, category);
-            _unitOfWork.CategoryRepository.Update(category); 
+            if (!string.IsNullOrEmpty(categoryUpdateDto.Name) && categoryToUpdate.Name != categoryUpdateDto.Name)
+            {
+                var existingCategoryWithNewName = await _unitOfWork.CategoryRepository.GetByNameAsync(categoryUpdateDto.Name, cancellationToken);
+
+                if (existingCategoryWithNewName != null && existingCategoryWithNewName.Id != id)
+                {
+                    throw new ConflictException("This category name is already in use by another category.");
+                }
+            }
+
+            _mapper.Map(categoryUpdateDto, categoryToUpdate);
+            _unitOfWork.CategoryRepository.Update(categoryToUpdate); 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 

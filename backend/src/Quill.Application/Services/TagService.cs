@@ -25,6 +25,13 @@ namespace Quill.Application.Services
 
         public async Task<TagDto> CreateAsync(TagCreateDto tagCreateDto, CancellationToken cancellationToken)
         {
+            var existingTag = await _unitOfWork.TagRepository.GetByNameAsync(tagCreateDto.Name, cancellationToken);
+
+            if (existingTag != null)
+            {
+                throw new ConflictException("A Tag with this name already exists.");
+            }
+
             var tag = _mapper.Map<Tag>(tagCreateDto);
 
             await _unitOfWork.TagRepository.AddAsync(tag, cancellationToken);
@@ -64,11 +71,21 @@ namespace Quill.Application.Services
 
         public async Task UpdateAsync(int id, TagUpdateDto tagUpdateDto, CancellationToken cancellationToken)
         {
-            var tag = await GetTagAndEnsureExists(id, cancellationToken);
+            var tagToUpdate = await GetTagAndEnsureExists(id, cancellationToken);
 
-            _mapper.Map(tagUpdateDto, tag);
+            if (!string.IsNullOrEmpty(tagUpdateDto.Name) && tagToUpdate.Name != tagUpdateDto.Name)
+            {
+                var existingTagWithNewName = await _unitOfWork.TagRepository.GetByNameAsync(tagUpdateDto.Name, cancellationToken);
 
-            _unitOfWork.TagRepository.Update(tag); 
+                if (existingTagWithNewName != null && existingTagWithNewName.Id != id)
+                {
+                    throw new ConflictException("This tag name is already in use by another tag.");
+                }
+            }
+
+            _mapper.Map(tagUpdateDto, tagToUpdate);
+
+            _unitOfWork.TagRepository.Update(tagToUpdate); 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 

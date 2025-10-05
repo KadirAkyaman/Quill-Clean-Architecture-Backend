@@ -24,6 +24,12 @@ namespace Quill.Application.Services
 
         public async Task<RoleDto> CreateAsync(RoleCreateDto roleCreateDto, CancellationToken cancellationToken)
         {
+            var existingRole = await _unitOfWork.RoleRepository.GetByNameAsync(roleCreateDto.Name, cancellationToken);
+            if (existingRole != null)
+            {
+                throw new ConflictException("A role with this name already exists.");
+            }
+
             var role = _mapper.Map<Role>(roleCreateDto);
 
             await _unitOfWork.RoleRepository.AddAsync(role, cancellationToken);
@@ -64,6 +70,16 @@ namespace Quill.Application.Services
         public async Task UpdateAsync(int id, RoleUpdateDto roleUpdateDto, CancellationToken cancellationToken)
         {
             var role = await GetRoleAndEnsureExists(id, cancellationToken);
+
+            if (!string.IsNullOrEmpty(roleUpdateDto.Name) && role.Name != roleUpdateDto.Name)
+            {
+                var existingRoleWithNewName = await _unitOfWork.RoleRepository.GetByNameAsync(roleUpdateDto.Name, cancellationToken);
+
+                if (existingRoleWithNewName != null && existingRoleWithNewName.Id != id)
+                {
+                    throw new ConflictException("A role with this name already exists.");
+                }
+            }
 
             _mapper.Map(roleUpdateDto, role);
             _unitOfWork.RoleRepository.Update(role);
