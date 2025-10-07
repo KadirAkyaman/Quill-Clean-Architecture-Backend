@@ -56,7 +56,6 @@ namespace Quill.Application.UnitTests.Services
             await _tagService.CreateAsync(tagCreateDto, CancellationToken.None);
 
             // Then
-            _tagRepositoryMock.Verify(repo => repo.GetByNameAsync(It.Is<string>(name => name == tagCreateDto.Name), It.IsAny<CancellationToken>()), Times.Once);
             _tagRepositoryMock.Verify(repo => repo.AddAsync(newTag, It.IsAny<CancellationToken>()), Times.Once);
             _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }

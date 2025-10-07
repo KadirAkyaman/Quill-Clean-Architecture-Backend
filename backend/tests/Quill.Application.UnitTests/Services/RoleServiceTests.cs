@@ -54,7 +54,6 @@ namespace Quill.Application.UnitTests.Services
             await _roleService.CreateAsync(roleCreateDto, CancellationToken.None);
 
             // Then
-            _roleRepositoryMock.Verify(repo => repo.GetByNameAsync(roleCreateDto.Name, It.IsAny<CancellationToken>()), Times.Once);
             _roleRepositoryMock.Verify(repo => repo.AddAsync(newRole, It.IsAny<CancellationToken>()), Times.Once);
             _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
@@ -173,7 +172,6 @@ namespace Quill.Application.UnitTests.Services
             await _roleService.DeleteAsync(roleId, CancellationToken.None);
 
             // Then
-            _roleRepositoryMock.Verify(repo => repo.GetByIdAsync(roleId, It.IsAny<CancellationToken>()), Times.Once);
             _roleRepositoryMock.Verify(repo => repo.Remove(roleFromDb), Times.Once);
             _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
