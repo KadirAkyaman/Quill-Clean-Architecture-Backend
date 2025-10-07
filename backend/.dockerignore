@@ -1,0 +1,26 @@
+# Dependency folders
+**/bin
+**/obj
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+# IDE and tool folders
+.vs/
+.vscode/
+.idea/
+.git/
+.github/
+
+# Test projects
+**/tests/
+
+# Others
+*.dbmdl
+*.jfm
+*~
+*.DS_Store
+*.pid
+*.pid.lock
