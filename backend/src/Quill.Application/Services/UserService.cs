@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Quill.Application.DTOs.Post;
 using Quill.Application.DTOs.User;
 using Quill.Application.Exceptions;
 using Quill.Application.Interfaces;
+using Quill.Application.Interfaces.Infrastructure;
 using Quill.Application.Interfaces.Services;
 using Quill.Application.Options;
 using Quill.Domain.Entities;
@@ -20,13 +22,15 @@ namespace Quill.Application.Services
         private readonly IMapper _mapper;
         private readonly IAuthService _authService;
         private readonly JwtOptions _jwtOptions;
+        private readonly IFileStorageService _fileStorageService;
 
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IAuthService authService, IOptions<JwtOptions> jwtOptions)
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IAuthService authService, IOptions<JwtOptions> jwtOptions, IFileStorageService fileStorageService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _authService = authService;
             _jwtOptions = jwtOptions.Value;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task ChangePasswordAsync(int userId, UserChangePasswordDto userChangePasswordDto, CancellationToken cancellationToken)
@@ -220,6 +224,21 @@ namespace Quill.Application.Services
                 throw new NotFoundException($"User with ID {userId} cannot found. ");
 
             return user;
+        }
+
+        public async Task<string> UpdateProfilePictureAsync(int userId, IFormFile file, CancellationToken cancellationToken)
+        {
+            var user = await GetUserAndEnsureExists(userId, cancellationToken);
+
+            var fileUrl = await _fileStorageService.UploadFileAsync(file, "profiles", cancellationToken);
+
+            user.ProfilePictureURL = fileUrl;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            _unitOfWork.UserRepository.Update(user);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return fileUrl;
         }
     }
 }

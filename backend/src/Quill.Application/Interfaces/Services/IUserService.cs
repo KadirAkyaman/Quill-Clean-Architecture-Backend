@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Quill.Application.DTOs.User;
 using Quill.Application.Exceptions;
 
@@ -100,5 +101,19 @@ namespace Quill.Application.Interfaces.Services
         /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="NotFoundException">Thrown if the user is not found.</exception>
         Task DeleteUserByAdminAsync(int userId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Uploads a new profile picture for a specified user, saves it to the configured file storage,
+        /// and updates the user's profile picture URL in the database.
+        /// </summary>
+        /// <param name="userId">The unique identifier of the user whose profile picture is being updated.</param>
+        /// <param name="file">The new profile picture file, received as an IFormFile.</param>
+        /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains the
+        /// new, publicly accessible URL of the uploaded profile picture.
+        /// </returns>
+        /// <exception cref="NotFoundException">Thrown if a user with the specified <paramref name="userId"/> is not found.</exception>
+        Task<string> UpdateProfilePictureAsync(int userId, IFormFile file, CancellationToken cancellationToken);
     }
 }

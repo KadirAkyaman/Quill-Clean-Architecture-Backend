@@ -144,6 +144,50 @@ namespace Quill.Presentation.Controllers
         }
 
         /// <summary>
+        /// Uploads or updates the profile picture for the currently authenticated user.
+        /// </summary>
+        /// <param name="file">The image file to upload.</param>
+        /// <param name="cancellationToken">A token to cancel the operation.</param>
+        /// <returns>An object containing the new URL of the uploaded profile picture.</returns>
+        /// <response code="200">Returns the new URL of the profile picture.</response>
+        /// <response code="400">If the file is missing, empty, or not a valid image format.</response>
+        /// <response code="401">If the user is not authenticated.</response>
+        [HttpPut("me/profile-picture")]
+        [Authorize]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateProfilePicture(IFormFile file, CancellationToken cancellationToken)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded or file is empty.");
+            }
+
+            const long maxFileSize = 2 * 1024 * 1024; // 2 Megabytes
+            if (file.Length > maxFileSize)
+            {
+                return BadRequest($"File size cannot exceed {maxFileSize / 1024 / 1024} MB.");
+            }
+
+            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+            if (!allowedContentTypes.Contains(file.ContentType.ToLowerInvariant()))
+            {
+                return BadRequest("Invalid file type. Only JPG, PNG, and GIF images are allowed.");
+            }
+    
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Unauthorized();
+            }
+            var userId = int.Parse(userIdString);
+            var newUrl = await _userService.UpdateProfilePictureAsync(userId, file, cancellationToken);
+            return Ok(new { ProfilePictureUrl = newUrl });
+        }
+
+        /// <summary>
         /// Subscribes the currently authenticated user to another user.
         /// </summary>
         /// <param name="username">The username of the user to subscribe to.</param>

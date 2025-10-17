@@ -23,11 +23,5 @@ namespace Quill.Application.DTOs.User
         /// </summary>
         /// <example>janesmith</example>
         public string? Username { get; set; }
-
-        /// <summary>
-        /// The new URL for the user's profile picture.
-        /// </summary>
-        /// <example>https://example.com/images/janesmith.jpg</example>
-        public string? ProfilePictureURL { get; set; }
     }
 }
