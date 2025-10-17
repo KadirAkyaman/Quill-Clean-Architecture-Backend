@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Quill.Application.DTOs.User;
 using Quill.Application.Interfaces.Services;
 
@@ -9,6 +10,7 @@ namespace Quill.Presentation.Controllers
 {
     [ApiController]
     [Route("api/admin/users")]
+    [EnableRateLimiting("admin")]
     [Tags("Admin")]
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
