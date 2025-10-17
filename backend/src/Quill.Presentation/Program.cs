@@ -1,10 +1,12 @@
 using System.Reflection;
 using System.Text;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using HealthChecks.UI.Client;
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
@@ -57,6 +59,51 @@ builder.Services.AddHealthChecks()
 builder.Services
     .AddHealthChecksUI()
     .AddInMemoryStorage();
+
+
+// Rate Limiting Policies
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter(policyName: "fixed", fixedWindowOptions =>
+    {
+        fixedWindowOptions.PermitLimit = 20;
+        fixedWindowOptions.Window = TimeSpan.FromSeconds(10);
+        fixedWindowOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        fixedWindowOptions.QueueLimit = 5;
+    });
+
+    options.AddFixedWindowLimiter(policyName: "auth", fixedWindowOptions =>
+    {
+        fixedWindowOptions.PermitLimit = 5;
+        fixedWindowOptions.Window = TimeSpan.FromMinutes(1);
+    });
+
+    options.AddFixedWindowLimiter(policyName: "admin", fixedWindowOptions =>
+    {
+        fixedWindowOptions.PermitLimit = 30;
+        fixedWindowOptions.Window = TimeSpan.FromSeconds(10);
+        fixedWindowOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        fixedWindowOptions.QueueLimit = 5;
+    });
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            await context.HttpContext.Response.WriteAsync
+                ($"Too many requests. Please try again after {retryAfter.TotalSeconds} second(s).", cancellationToken: token);
+        }
+
+        else
+        {
+            await context.HttpContext.Response.WriteAsync
+                ("Too many requests. Please try again later.", cancellationToken: token);
+        }
+    };
+});
 
 // --- Configure Services ---
 
@@ -162,6 +209,8 @@ var app = builder.Build();
 // --- Configure HTTP Request Pipeline ---
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+app.UseRateLimiter();
 
 app.UseSerilogRequestLogging();
 
