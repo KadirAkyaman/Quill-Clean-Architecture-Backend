@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -11,9 +9,10 @@ using Quill.Application.Interfaces.Services;
 namespace Quill.Presentation.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [EnableRateLimiting("fixed")]
     [Tags("Posts")]
+    [ApiVersion("1.0")]
     public class PostsController : ControllerBase
     {
         private readonly IPostService _postService;

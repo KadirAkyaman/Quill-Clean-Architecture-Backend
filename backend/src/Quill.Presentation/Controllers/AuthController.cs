@@ -1,5 +1,4 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Quill.Application.DTOs.User;
@@ -8,9 +7,10 @@ using Quill.Application.Interfaces.Services;
 namespace Quill.Presentation.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [EnableRateLimiting("auth")]
     [Tags("Authentication")]
+    [ApiVersion("1.0")]
     public class AuthController : ControllerBase
     {
         // ../logout 
