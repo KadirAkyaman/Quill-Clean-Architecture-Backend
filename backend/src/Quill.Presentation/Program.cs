@@ -69,8 +69,6 @@ builder.Services.AddRateLimiter(options =>
     {
         fixedWindowOptions.PermitLimit = 20;
         fixedWindowOptions.Window = TimeSpan.FromSeconds(10);
-        fixedWindowOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        fixedWindowOptions.QueueLimit = 5;
     });
 
     options.AddFixedWindowLimiter(policyName: "auth", fixedWindowOptions =>
@@ -83,24 +81,23 @@ builder.Services.AddRateLimiter(options =>
     {
         fixedWindowOptions.PermitLimit = 30;
         fixedWindowOptions.Window = TimeSpan.FromSeconds(10);
-        fixedWindowOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        fixedWindowOptions.QueueLimit = 5;
     });
 
     options.OnRejected = async (context, token) =>
     {
-        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
 
         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
         {
-            await context.HttpContext.Response.WriteAsync
-                ($"Too many requests. Please try again after {retryAfter.TotalSeconds} second(s).", cancellationToken: token);
-        }
+            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString("0");
 
+            await context.HttpContext.Response.WriteAsync(
+                $"Too many requests. Please try again after {retryAfter.TotalSeconds:0} second(s).", cancellationToken: token);
+        }
         else
         {
-            await context.HttpContext.Response.WriteAsync
-                ("Too many requests. Please try again later.", cancellationToken: token);
+            await context.HttpContext.Response.WriteAsync(
+                "Too many requests. Please try again later.", cancellationToken: token);
         }
     };
 });
