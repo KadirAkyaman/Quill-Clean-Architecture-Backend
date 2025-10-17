@@ -23,6 +23,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+    volumes:
+      - profile_images:/app/wwwroot/images/profiles
 
   # Database Service
   postgres-db:
@@ -44,3 +46,4 @@ services:
 
 volumes:
   postgres_data:
+  profile_images:

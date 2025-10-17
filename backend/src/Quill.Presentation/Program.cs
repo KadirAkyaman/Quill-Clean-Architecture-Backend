@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Quill.Application.Interfaces;
+using Quill.Application.Interfaces.Infrastructure;
 using Quill.Application.Interfaces.Repositories;
 using Quill.Application.Interfaces.Services;
 using Quill.Application.Mappings;
@@ -23,6 +24,7 @@ using Quill.Application.Validators.User;
 using Quill.Infrastructure.Options;
 using Quill.Infrastructure.Persistence;
 using Quill.Infrastructure.Persistence.Repositories;
+using Quill.Infrastructure.Services;
 using Quill.Presentation.Middleware;
 using Quill.Presentation.Swagger;
 using Serilog;
@@ -211,6 +213,8 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IFileStorageService, LocalStorageService>();
 
 // AutoMapper Resolvers
 builder.Services.AddScoped<CategoryPostCountResolver>();
@@ -242,7 +246,7 @@ app.UseSerilogRequestLogging();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    
+
     var apiVersionDescriptionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
     app.UseSwaggerUI(options =>
     {
@@ -252,6 +256,10 @@ if (app.Environment.IsDevelopment())
         }
     });
 }
+
+app.UseStaticFiles();
+
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
