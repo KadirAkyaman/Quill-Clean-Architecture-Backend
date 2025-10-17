@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -12,9 +8,10 @@ using Quill.Application.Interfaces.Services;
 namespace Quill.Presentation.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [EnableRateLimiting("fixed")]
     [Tags("Tags")]
+    [ApiVersion("1.0")]
     public class TagsController : ControllerBase
     {
         private readonly ITagService _tagService;

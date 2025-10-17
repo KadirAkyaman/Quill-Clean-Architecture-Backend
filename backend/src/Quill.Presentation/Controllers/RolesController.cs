@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -10,10 +8,11 @@ using Quill.Application.Interfaces.Services;
 namespace Quill.Presentation.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [EnableRateLimiting("fixed")]
     [Tags("Roles")]
     [Authorize(Roles = "Admin")]
+    [ApiVersion("1.0")]
     public class RolesController : ControllerBase
     {
         private readonly IRoleService _roleService;
