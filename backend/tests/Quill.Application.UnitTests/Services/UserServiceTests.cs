@@ -1,11 +1,13 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
 using Quill.Application.DTOs.User;
 using Quill.Application.Exceptions;
 using Quill.Application.Interfaces;
+using Quill.Application.Interfaces.Infrastructure;
 using Quill.Application.Interfaces.Repositories;
 using Quill.Application.Interfaces.Services;
 using Quill.Application.Options;
@@ -23,6 +25,7 @@ namespace Quill.Application.UnitTests.Services
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<IAuthService> _authServiceMock;
         private readonly Mock<IOptions<JwtOptions>> _jwtOptionsMock;
+        private readonly Mock<IFileStorageService> _fileStorageServiceMock;
         private readonly UserService _userService;
 
         public UserServiceTests()
@@ -33,6 +36,7 @@ namespace Quill.Application.UnitTests.Services
             _mapperMock = new Mock<IMapper>();
             _authServiceMock = new Mock<IAuthService>();
             _jwtOptionsMock = new Mock<IOptions<JwtOptions>>();
+            _fileStorageServiceMock = new Mock<IFileStorageService>();
 
             _unitOfWorkMock.Setup(uow => uow.UserRepository).Returns(_userRepositoryMock.Object);
             _unitOfWorkMock.Setup(uow => uow.RoleRepository).Returns(_roleRepositoryMock.Object);
@@ -44,7 +48,8 @@ namespace Quill.Application.UnitTests.Services
                 _unitOfWorkMock.Object,
                 _mapperMock.Object,
                 _authServiceMock.Object,
-                _jwtOptionsMock.Object);
+                _jwtOptionsMock.Object,
+                _fileStorageServiceMock.Object);
         }
 
         // ---REGISTER------------------------------------------------------------------------------------------------
@@ -560,6 +565,70 @@ namespace Quill.Application.UnitTests.Services
             // Then
             _userRepositoryMock.Verify(repo => repo.Update(It.Is<User>(u => u.Id == userId && u.IsActive == false)), Times.Once);
             _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateProfilePictureAsync_WithValidFile_ShouldUploadFileAndUpdateUserUrl()
+        {
+            // Given 
+            var userId = 1;
+            var newFileUrl = "http://example.com/images/profiles/new-picture.jpg";
+
+            var fileMock = new Mock<IFormFile>();
+            fileMock.Setup(f => f.FileName).Returns("test-image.jpg");
+            fileMock.Setup(f => f.Length).Returns(1024);
+            fileMock.Setup(f => f.ContentType).Returns("image/jpeg");
+
+            var userFromDb = new User
+            {
+                Id = userId,
+                ProfilePictureURL = "http://example.com/images/profiles/old-picture.jpg"
+            };
+
+            _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(userFromDb);
+
+            _fileStorageServiceMock.Setup(fs => fs.UploadFileAsync(fileMock.Object, "profiles", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(newFileUrl);
+
+
+            // When
+            var resultUrl = await _userService.UpdateProfilePictureAsync(userId, fileMock.Object, CancellationToken.None);
+
+
+            // Then 
+            resultUrl.Should().NotBeNull();
+            resultUrl.Should().Be(newFileUrl);
+
+            _userRepositoryMock.Verify(repo => repo.Update(
+                It.Is<User>(u =>
+                    u.Id == userId &&
+                    u.ProfilePictureURL == newFileUrl
+                )),
+                Times.Once);
+
+            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+        
+        [Fact]
+        public async Task UpdateProfilePictureAsync_WhenUserNotFound_ShouldThrowNotFoundException()
+        {
+            // Given
+            var nonExistentUserId = 999;
+            var fileMock = new Mock<IFormFile>();
+
+            _userRepositoryMock.Setup(repo => repo.GetByIdAsync(nonExistentUserId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((User?)null);
+
+            // When
+            Func<Task> act = async () => await _userService.UpdateProfilePictureAsync(nonExistentUserId, fileMock.Object, CancellationToken.None);
+
+            // Then
+            await act.Should().ThrowAsync<NotFoundException>();
+
+            _fileStorageServiceMock.Verify(fs => fs.UploadFileAsync(It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            _userRepositoryMock.Verify(repo => repo.Update(It.IsAny<User>()), Times.Never);
+            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }        
     }
 }
